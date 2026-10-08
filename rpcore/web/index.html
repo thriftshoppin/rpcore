@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RPCore // HUD</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- Every card is empty markup; app.js fills it from server messages. No external requests. -->
+<div id="stack">
+  <section class="card" id="offer" hidden>
+    <div class="brand"></div>
+    <div class="kicker">Incoming activity</div>
+    <h1 class="title"></h1>
+    <p class="desc"></p>
+    <div class="keys">
+      <span class="key-hint"><kbd id="key-accept"></kbd>Accept</span>
+      <span class="key-hint"><kbd id="key-decline"></kbd>Decline</span>
+    </div>
+    <div class="timer"><i></i></div>
+  </section>
+
+  <section class="card" id="tracker" hidden>
+    <div class="brand"></div>
+    <h1 class="title"></h1>
+    <div class="rule"></div>
+    <div class="objective"><span class="mark"></span><span class="otext"></span></div>
+    <p class="odesc"></p>
+    <div class="progress"><span class="count"></span><span class="segs"></span></div>
+  </section>
+
+  <section class="card" id="result" hidden>
+    <div class="brand"></div>
+    <div class="kicker"></div>
+    <h1 class="title"></h1>
+    <p class="desc"></p>
+    <div class="reward" hidden>
+      <div class="kicker">Reward</div>
+      <div class="amount"></div>
+      <div class="rstate"></div>
+    </div>
+  </section>
+
+  <section class="card" id="toast" hidden>
+    <div class="brand"></div>
+    <p class="desc"></p>
+  </section>
+</div>
+
+<section class="card" id="journal" hidden>
+  <div class="brand"></div>
+  <div class="tabs"><button data-tab="active" class="on">Active</button><button data-tab="history">History</button></div>
+  <div id="journal-body"></div>
+  <div class="foot"><kbd id="key-journal"></kbd>Close</div>
+</section>
+
+<section class="card" id="controls" hidden aria-label="RPCore controls">
+  <div class="brand"></div>
+  <div class="kicker">Field controls</div>
+  <h1 class="title">Key bindings</h1>
+  <p class="settings-note">Choose an action, then press the key you want to use.</p>
+  <div class="binding-head"><span>ACTION</span><span>KEY</span><span>EDIT</span><span></span></div>
+  <div id="binding-list" class="binding-list"></div>
+  <div id="capture-status" class="capture-status" aria-live="polite">ESC closes controls</div>
+  <button id="controls-close" class="close-button" type="button">Close <kbd>ESC</kbd></button>
+</section>
+
+<script src="app.js"></script>
+</body>
+</html>

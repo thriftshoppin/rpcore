@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SIMNC // blood</title>
+<style>
+  /* Blood on the screen after a blade cut. This page is the BOTTOM HUD layer:
+     everything else draws over it. It only paints the screen edges -- never the
+     top-right info card, the bottom-left vitals, the bottom-right weapon card,
+     the wordmark or the middle of the screen where you aim -- and every
+     splatter fades out by itself in about three seconds. */
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ width:100%; height:100%; overflow:hidden; background:transparent; pointer-events:none; }
+  .splat{ position:absolute; pointer-events:none; transform-origin:center;
+    animation: splat-in .09s ease-out both, splat-out 2.2s ease-in 1.3s both; }
+  .splat svg{ display:block; width:100%; height:100%; overflow:visible; }
+  .drip{ animation: drip 3.4s cubic-bezier(.3,.1,.6,1) .15s both; }
+  @keyframes splat-in{ from{ opacity:0; transform:scale(.82) rotate(var(--r)); } to{ opacity:var(--o); transform:scale(1) rotate(var(--r)); } }
+  @keyframes splat-out{ from{ opacity:var(--o); } to{ opacity:0; } }
+  @keyframes drip{ from{ transform:translateY(0) scaleY(.6); } to{ transform:translateY(34px) scaleY(1.25); } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <!-- Ragged, wet edges: the blob is pushed around by noise. -->
+    <filter id="rag" x="-30%" y="-30%" width="160%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="26" xChannelSelector="R" yChannelSelector="G"/>
+      <feGaussianBlur stdDeviation="0.8"/>
+    </filter>
+    <radialGradient id="wet" cx="45%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#9c0f12"/>
+      <stop offset="55%" stop-color="#6e0709"/>
+      <stop offset="100%" stop-color="#3a0204"/>
+    </radialGradient>
+    <radialGradient id="dark" cx="45%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#7a0a0c"/>
+      <stop offset="60%" stop-color="#4a0305"/>
+      <stop offset="100%" stop-color="#240102"/>
+    </radialGradient>
+  </defs>
+</svg>
+<script>
+(function () {
+  var MAX = 4, live = [];
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+
+  // Where blood may land, in % of the screen: the edges, clear of every UI.
+  // (Not the top-left: the chat box lives there.)
+  var SAFE = {
+    leftMid:  { x: [4, 9],   y: [34, 58] },
+    rightMid: { x: [91, 96], y: [40, 58] },
+    topMid:   { x: [34, 62], y: [3, 9] },
+  };
+  function anchorFor(hit) {
+    var z = hit.zone, s = hit.side || '';
+    if (z === 'head' || z === 'neck') return 'topMid';
+    if (s.indexOf('left') >= 0) return 'leftMid';
+    if (s.indexOf('right') >= 0) return 'rightMid';
+    return Math.random() < 0.5 ? 'leftMid' : 'rightMid';
+  }
+
+  function blob(heavy) {
+    var ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 360 360');
+    var g = document.createElementNS(ns, 'g');
+    g.setAttribute('filter', 'url(#rag)');
+    var fill = heavy ? 'url(#dark)' : 'url(#wet)';
+    // The body of the splatter: a few overlapping rounds.
+    for (var i = 0, n = heavy ? 6 : 4; i < n; i++) {
+      var c = document.createElementNS(ns, 'circle');
+      c.setAttribute('cx', rnd(140, 220)); c.setAttribute('cy', rnd(140, 210));
+      c.setAttribute('r', rnd(heavy ? 40 : 28, heavy ? 78 : 56));
+      c.setAttribute('fill', fill); g.appendChild(c);
+    }
+    // Flung droplets along one direction, like the swing of the blade.
+    var ang = rnd(0, Math.PI * 2);
+    for (var j = 0, m = Math.floor(rnd(heavy ? 9 : 5, heavy ? 15 : 10)); j < m; j++) {
+      var d = rnd(90, 170), spread = rnd(-0.5, 0.5), dot = document.createElementNS(ns, 'circle');
+      dot.setAttribute('cx', 180 + Math.cos(ang + spread) * d); dot.setAttribute('cy', 180 + Math.sin(ang + spread) * d);
+      dot.setAttribute('r', rnd(3, heavy ? 13 : 9)); dot.setAttribute('fill', fill); g.appendChild(dot);
+    }
+    svg.appendChild(g);
+    // A couple of drips running down from the bottom of the blob.
+    for (var k = 0, q = heavy ? 3 : 2; k < q; k++) {
+      var drip = document.createElementNS(ns, 'rect');
+      var w = rnd(5, 11);
+      drip.setAttribute('x', rnd(150, 210)); drip.setAttribute('y', rnd(220, 250));
+      drip.setAttribute('width', w); drip.setAttribute('height', rnd(30, heavy ? 90 : 60));
+      drip.setAttribute('rx', w / 2); drip.setAttribute('fill', fill);
+      drip.setAttribute('class', 'drip'); drip.style.animationDelay = rnd(0.1, 0.5) + 's';
+      svg.appendChild(drip);
+    }
+    return svg;
+  }
+
+  function splat(hit) {
+    var heavy = !!hit.heavy, area = SAFE[anchorFor(hit)];
+    var size = heavy ? rnd(24, 30) : rnd(16, 22); // vh
+    var el = document.createElement('div');
+    el.className = 'splat';
+    el.style.width = el.style.height = size + 'vh';
+    el.style.left = 'calc(' + rnd(area.x[0], area.x[1]) + 'vw - ' + (size / 2) + 'vh)';
+    el.style.top = 'calc(' + rnd(area.y[0], area.y[1]) + 'vh - ' + (size / 2) + 'vh)';
+    el.style.setProperty('--o', heavy ? '0.6' : '0.42');
+    el.style.setProperty('--r', rnd(-40, 40) + 'deg');
+    el.appendChild(blob(heavy));
+    document.body.appendChild(el);
+    live.push(el);
+    while (live.length > MAX) { var old = live.shift(); if (old.parentNode) old.parentNode.removeChild(old); }
+    setTimeout(function () {
+      if (el.parentNode) el.parentNode.removeChild(el);
+      var at = live.indexOf(el); if (at >= 0) live.splice(at, 1);
+    }, 3700);
+  }
+
+  if (window.Open77 && typeof Open77.on === 'function') {
+    Open77.on('blood:hit', function (hit) { if (hit) splat(hit); });
+    Open77.emit('blood:ready', {});
+  }
+})();
+</script>
+</body>
+</html>

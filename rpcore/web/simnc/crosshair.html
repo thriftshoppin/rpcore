@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SIMNC crosshair</title>
+<style>
+/* The Open77 reticle (open77_reticle), drawn in first person too. Passive:
+ * no pointer events, it can never take a click from the game. */
+:root { --reticle: #7ee7e0; --reticle-edge: rgba(0, 0, 0, .55); --gap: 7px; --arm: 7px; --thickness: 2px; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: transparent; overflow: hidden;
+  pointer-events: none; user-select: none; }
+.reticle { position: absolute; left: 50%; top: 50%; width: 0; height: 0; opacity: 0;
+  transition: opacity 60ms linear, --gap 80ms linear; }
+.reticle[data-state="hip"] { opacity: .9; --gap: 7px; --arm: 7px; }
+.reticle[data-state="aim"] { opacity: 1; --gap: 5px; --arm: 8px; }
+.tick, .dot { position: absolute; background: var(--reticle);
+  box-shadow: 0 0 0 1px var(--reticle-edge), 0 0 6px rgba(126, 231, 224, .35); }
+.tick-up, .tick-down { width: var(--thickness); height: var(--arm); left: calc(var(--thickness) / -2); }
+.tick-up { top: calc(-1 * (var(--gap) + var(--arm))); }
+.tick-down { top: var(--gap); }
+.tick-left, .tick-right { width: var(--arm); height: var(--thickness); top: calc(var(--thickness) / -2); }
+.tick-left { left: calc(-1 * (var(--gap) + var(--arm))); }
+.tick-right { left: var(--gap); }
+.dot { width: 2px; height: 2px; left: -1px; top: -1px; border-radius: 50%; opacity: .85; }
+</style>
+</head>
+<body>
+<div class="reticle" id="reticle" data-state="hidden" aria-hidden="true">
+  <span class="tick tick-up"></span><span class="tick tick-down"></span>
+  <span class="tick tick-left"></span><span class="tick tick-right"></span>
+  <span class="dot"></span>
+</div>
+<script>
+(() => {
+  "use strict";
+  const node = document.getElementById("reticle");
+  Open77.on("crosshair:state", (p) => {
+    const next = p && p.visible === true ? (p.aiming === true ? "aim" : "hip") : "hidden";
+    if (node.getAttribute("data-state") !== next) node.setAttribute("data-state", next);
+  });
+  Open77.ready();
+  Open77.emit("crosshair:ready", {});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SIMNC // HUD</title>
+<style>
+  /* No external requests of any kind — CDNs don't load inside Open77's
+     WebUI sandbox. Everything below is plain CSS/inline SVG. */
+
+  /* The game's own type, the same files OPX ships (web/fonts). */
+  @font-face{ font-family:Rajdhani; font-weight:700; src:url(fonts/rajdhani-latin-700-normal.woff2) format('woff2'); }
+  @font-face{ font-family:Saira; font-weight:400; src:url(fonts/saira-latin-400-normal.woff2) format('woff2'); }
+  @font-face{ font-family:'IBM Plex Mono'; font-weight:400; src:url(fonts/ibm-plex-mono-latin-400-normal.woff2) format('woff2'); }
+  @font-face{ font-family:'IBM Plex Mono'; font-weight:700; src:url(fonts/ibm-plex-mono-latin-700-normal.woff2) format('woff2'); }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ background:transparent; overflow:hidden; width:100%; height:100%; }
+  body{
+    font-family: Saira, 'Bahnschrift', 'Segoe UI', system-ui, sans-serif;
+    color:#f2f6f8;
+  }
+
+  /* OPX's ladder for the SIMNC accent #4ade80 (simnc_core config/theme.lua,
+     modules/theme/shared/palette.lua): the HUD and every OPX menu are one
+     system, the way the base game's HUD and menus are. */
+  :root{
+    --grn:#4ade80;            /* accent */
+    --grn-text:#6acf8f;       /* text rung */
+    --warn:#ffb020;
+    --danger:#ff6b6b;
+    --plate: rgba(11,25,16,0.84);
+    --plate-lit: rgba(29,66,43,0.90);
+    --line: rgba(74,222,128,0.34);
+    --border: rgba(74,222,128,0.16);
+    --track: rgba(74,222,128,0.14);
+    --muted:#8d99a8;
+    --display: Rajdhani, 'Bahnschrift Condensed', 'Arial Narrow', sans-serif;
+    --mono: 'IBM Plex Mono', 'Cascadia Mono', Consolas, monospace;
+    --cut: 14px;
+  }
+
+  .frame{ position:relative; width:100vw; height:100vh; }
+
+  /* A base-game panel: chamfered top-left and bottom-right, a hairline in the
+     accent, the accent rule down the left edge and the house scanline over the
+     plate. Built in three layers because a clip-path also clips a border:
+     the card itself is the hairline, ::before the plate inset 1px inside it,
+     ::after the rule. */
+  .card{
+    position:absolute;
+    background:var(--line);
+    clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+    padding:16px 20px;
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,0.35));
+  }
+  .card::before{
+    content:''; position:absolute; inset:1px; pointer-events:none;
+    clip-path: polygon(calc(var(--cut) - 1px) 0, 100% 0, 100% calc(100% - var(--cut) + 1px), calc(100% - var(--cut) + 1px) 100%, 0 100%, 0 calc(var(--cut) - 1px));
+    background:
+      repeating-linear-gradient(to bottom, rgba(74,222,128,0.08) 0px, rgba(74,222,128,0.08) 1px, transparent 1px, transparent 3px),
+      var(--plate);
+  }
+  .card::after{
+    content:''; position:absolute; left:1px; top:calc(var(--cut) + 6px); bottom:12px; width:3px; pointer-events:none;
+    background:var(--grn); box-shadow:0 0 6px rgba(74,222,128,0.6);
+  }
+  .card > *{ position:relative; z-index:1; }
+
+  .label{ font-family:var(--display); font-size:11px; letter-spacing:0.12em; color:var(--grn-text); font-weight:700; text-transform:uppercase; }
+  .value{ font-family:var(--display); font-size:16px; color:#f2f6f8; font-weight:700; letter-spacing:0.02em; margin-top:1px; }
+
+  .row{ display:flex; align-items:center; }
+  .row-between{ display:flex; align-items:center; justify-content:space-between; }
+  .divider-v{ width:1px; align-self:stretch; background:var(--border); margin:0 16px; }
+  .divider-h{ border-top:1px solid var(--border); }
+
+  .dot{ width:6px; height:6px; border-radius:50%; display:inline-block; }
+  /* Weather and time-of-day glyphs: thin line icons in the HUD's own voice
+     (no emoji). They inherit the text colour; the smog advisory is amber. */
+  .weather-icon{ display:inline-flex; width:17px; height:17px; color:#e8edf0; line-height:1;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.6)); }
+  .weather-icon svg{ width:100%; height:100%; display:block; fill:none; stroke:currentColor;
+    stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  #daynight-icon{ width:13px; height:13px; color:var(--muted); }
+  .weather-icon.alert{ color:#ffb020; }
+  @keyframes pulse-dot{ 0%,100%{ opacity:1; } 50%{ opacity:.45; } }
+  .pulse-dot{ animation: pulse-dot 2s ease-in-out infinite; }
+
+  /* ---- gauges: real SVG rings, rounded caps, dark track + bright fill ---- */
+  .ring-wrap{ position:relative; display:flex; align-items:center; justify-content:center; }
+  .ring-wrap svg{ transform:rotate(-90deg); }
+  .ring-track{ fill:none; stroke:var(--track); }
+  .ring-fill{ fill:none; stroke-linecap:butt; transition: stroke-dashoffset .35s ease, stroke .25s ease;
+    filter: drop-shadow(0 0 3px rgba(74,222,128,0.35)); }
+
+  .ring-center{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center;
+  }
+
+  /* big health gauge */
+  #health-card{ display:flex; flex-direction:column; align-items:center; gap:1px; width:124px; }
+  .health-num{ font-family:var(--display); font-size:30px; font-weight:700; line-height:1; letter-spacing:0.01em; }
+  .health-sub{ font-family:var(--mono); font-size:9px; color:var(--muted); font-weight:400; margin-top:1px; }
+  .health-tag{ font-family:var(--display); font-size:9px; letter-spacing:0.18em; color:var(--grn-text); font-weight:700; margin-top:2px; }
+
+  /* small badge gauges: armor / stamina / humanity */
+  .mini-row{ display:flex; gap:7px; margin-top:7px; }
+  .mini{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .mini-icon{ font-size:11px; line-height:1; }
+  .mini-svg{ display:flex; align-items:center; justify-content:center; width:24px; height:24px; }
+  .mini-svg svg, .ring-wrap .mini-svg svg{ display:block; transform:none; }
+  /* rendered 3D vitals icons (web/icons/*.webp) */
+  .mini-img{ display:flex; align-items:center; justify-content:center; width:36px; height:36px; }
+  .mini-img img{ width:36px; height:36px; object-fit:contain; display:block; filter:drop-shadow(0 1px 2px rgba(0,0,0,.7)); }
+  .mini-val{ font-family:var(--mono); font-size:9px; font-weight:700; }
+  .mini-label{ font-family:var(--display); font-size:7.5px; letter-spacing:0.14em; color:var(--muted); font-weight:700; text-transform:uppercase; }
+
+  /* ---- layout ---- */
+  /* SIMNC: sized by its content so the Account column never gets clipped at the edge */
+  /* Under the game's own minimap (top-right corner), where Cyberpunk puts its
+     objective tracker -- the corner itself belongs to the vanilla map. */
+  #char-panel{ top:232px; right:24px; width:auto; min-width:268px; padding:12px 18px; }
+  #char-panel .money{ text-align:right; white-space:nowrap; }
+  #char-panel .label, #char-panel .value{ white-space:nowrap; }
+  .job-line{ font-family:var(--display); font-size:11px; letter-spacing:0.12em; color:var(--muted); font-weight:600; text-transform:uppercase; margin-top:10px; padding-top:10px; }
+  .job-line .duty{ color:var(--grn); } .job-line .off{ color:var(--muted); }
+  .mini-row.needs{ margin-top:9px; padding-top:9px; border-top:1px solid var(--border); justify-content:space-between; }
+  #char-panel .value{ font-size:15px; }
+  #char-panel .label{ font-size:10px; }
+  #vitals-panel{ bottom:24px; left:24px; padding:11px 13px; }
+  /* A little smaller, not all the way: both cards scale about their own
+     corner, so neither moves -- only shrinks toward the screen edge. */
+  /* The inventory's visor tilt, EXACTLY as OPX draws it: ONE perspective of
+     900px for the whole screen with its vanishing point at the centre (the
+     inventory's .frame), the left panel turned +7deg about its left edge and
+     the right panel -7deg about its right edge (.lead / .trail). Sharing the
+     inventory's projection is what makes the HUD and the inventory read as one
+     visor when I is pressed. (rotateY turns about a vertical line, so the
+     origin's height only anchors the scale toward the corner.) */
+  .frame{ perspective:900px; perspective-origin:50% 50%; }
+  #char-panel{ transform:rotateY(-7deg) scale(0.88); transform-origin:top right; }
+  #vitals-panel{ transform:rotateY(7deg) scale(0.88); transform-origin:bottom left; }
+  /* SIMNC 2026-10-04: the OPX HUD (simnc_core modules/hud, config/hud.lua
+     SIMNC_EXTERNAL = false) draws the character info and every vitals gauge
+     again, humanity and energy included. These two cards are kept in the
+     page, switched off, so this page still carries the wordmark and the
+     state the weapon card reads. */
+  #char-panel, #vitals-panel{ display:none !important; }
+  /* The official SIMNC wordmark: small, bottom middle -- just enough to say
+     which server this is. A soft dark halo keeps it readable on bright ground. */
+  #logo{ position:absolute; bottom:12px; left:50%; transform:translateX(-50%); pointer-events:none; opacity:0.85; }
+  #logo img{ display:block; width:78px; height:auto; filter:drop-shadow(0 1px 1px rgba(0,0,0,.8)) drop-shadow(0 0 6px rgba(0,0,0,.35)); }
+</style>
+</head>
+<body>
+
+<div class="frame">
+
+  <!-- ============ TOP-RIGHT: character + eddies + weather ============ -->
+  <div id="char-panel" class="card">
+    <div class="row">
+      <div style="flex:1;">
+        <div class="label">Character</div>
+        <div id="char-name" class="value">—</div>
+      </div>
+      <div class="divider-v"></div>
+      <div class="money">
+        <div class="label">Eddies</div>
+        <div id="char-eddies" class="value">0€$</div>
+      </div>
+      <div class="divider-v"></div>
+      <div class="money">
+        <div class="label">Account</div>
+        <div id="char-bank" class="value">0€$</div>
+      </div>
+    </div>
+    <div class="job-line divider-h" id="job-line">Job <span id="job-name" style="color:#fff;">—</span> <span id="job-duty" class="off"></span></div>
+
+    <div class="row-between divider-h" style="padding-top:12px; margin-top:12px;">
+      <div class="row" style="gap:7px;">
+        <span id="weather-icon" class="weather-icon">—</span>
+        <span id="weather-label" class="label" style="color:#fff;">—</span>
+      </div>
+      <span class="row" style="gap:5px;">
+        <span id="daynight-icon" class="weather-icon">—</span>
+        <span id="weather-time" class="label">--:--</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- ============ BOTTOM-LEFT: health ring + armor/stamina/humanity badges ============ -->
+  <div id="vitals-panel" class="card">
+    <div id="health-card">
+      <div class="ring-wrap" style="width:112px; height:112px;">
+        <svg width="112" height="112" viewBox="0 0 112 112">
+          <circle class="ring-track" cx="56" cy="56" r="50" stroke-width="8"></circle>
+          <circle id="health-ring" class="ring-fill" cx="56" cy="56" r="50" stroke-width="8"
+                  stroke-dasharray="314.16" stroke-dashoffset="314.16" stroke="var(--danger)"></circle>
+        </svg>
+        <div class="ring-center">
+          <span id="health-val" class="health-num">—</span>
+          <span class="health-sub">/ <span id="health-max">—</span></span>
+        </div>
+      </div>
+      <div class="health-tag">HEALTH</div>
+    </div>
+
+    <div class="mini-row">
+      <!-- armor: numeric badge, no % data available to fill a ring with -->
+      <div class="mini">
+        <div class="ring-wrap" style="width:52px; height:52px;">
+          <svg width="52" height="52" viewBox="0 0 42 42">
+            <circle class="ring-track" cx="21" cy="21" r="16.5" stroke-width="3.5"></circle>
+          </svg>
+          <div class="ring-center">
+            <span class="mini-icon mini-img"><img src="icons/armor.webp" alt="" draggable="false"></span>
+          </div>
+        </div>
+        <span id="armor-val" class="mini-val">—</span>
+        <span class="mini-label">Armor</span>
+      </div>
+
+      <!-- stamina: real ring -->
+      <div class="mini">
+        <div class="ring-wrap" style="width:52px; height:52px;">
+          <svg width="52" height="52" viewBox="0 0 42 42">
+            <circle class="ring-track" cx="21" cy="21" r="16.5" stroke-width="3.5"></circle>
+            <circle id="stamina-ring" class="ring-fill" cx="21" cy="21" r="16.5" stroke-width="3.5"
+                    stroke-dasharray="103.67" stroke-dashoffset="103.67" stroke="var(--grn)"></circle>
+          </svg>
+          <div class="ring-center">
+            <span class="mini-icon mini-img"><img src="icons/stamina.webp" alt="" draggable="false"></span>
+          </div>
+        </div>
+        <span id="stamina-label" class="mini-val">—</span>
+        <span class="mini-label">Stamina</span>
+      </div>
+
+      <!-- humanity: real ring -->
+      <div class="mini">
+        <div class="ring-wrap" style="width:52px; height:52px;">
+          <svg width="52" height="52" viewBox="0 0 42 42">
+            <circle class="ring-track" cx="21" cy="21" r="16.5" stroke-width="3.5"></circle>
+            <circle id="humanity-ring" class="ring-fill" cx="21" cy="21" r="16.5" stroke-width="3.5"
+                    stroke-dasharray="103.67" stroke-dashoffset="103.67" stroke="var(--warn)"></circle>
+          </svg>
+          <div class="ring-center">
+            <span class="mini-icon mini-img"><img src="icons/humanity.webp" alt="" draggable="false"></span>
+          </div>
+        </div>
+        <span id="humanity-label" class="mini-val">—</span>
+        <span class="mini-label">Humanity</span>
+      </div>
+    </div>
+    <div class="mini-row needs">
+      <div class="mini">
+        <div class="ring-wrap" style="width:52px; height:52px;">
+          <svg width="52" height="52" viewBox="0 0 42 42">
+            <circle class="ring-track" cx="21" cy="21" r="16.5" stroke-width="3.5"></circle>
+            <circle id="food-ring" class="ring-fill" cx="21" cy="21" r="16.5" stroke-width="3.5"
+                    stroke-dasharray="103.67" stroke-dashoffset="103.67" stroke="var(--grn)"></circle>
+          </svg>
+          <div class="ring-center"><span class="mini-icon mini-img"><img src="icons/food.webp" alt="" draggable="false"></span></div>
+        </div>
+        <span id="food-label" class="mini-val">—</span>
+        <span class="mini-label">Food</span>
+      </div>
+      <div class="mini">
+        <div class="ring-wrap" style="width:52px; height:52px;">
+          <svg width="52" height="52" viewBox="0 0 42 42">
+            <circle class="ring-track" cx="21" cy="21" r="16.5" stroke-width="3.5"></circle>
+            <circle id="water-ring" class="ring-fill" cx="21" cy="21" r="16.5" stroke-width="3.5"
+                    stroke-dasharray="103.67" stroke-dashoffset="103.67" stroke="var(--grn)"></circle>
+          </svg>
+          <div class="ring-center"><span class="mini-icon mini-img"><img src="icons/water.webp" alt="" draggable="false"></span></div>
+        </div>
+        <span id="water-label" class="mini-val">—</span>
+        <span class="mini-label">Water</span>
+      </div>
+      <div class="mini">
+        <div class="ring-wrap" style="width:52px; height:52px;">
+          <svg width="52" height="52" viewBox="0 0 42 42">
+            <circle class="ring-track" cx="21" cy="21" r="16.5" stroke-width="3.5"></circle>
+            <circle id="energy-ring" class="ring-fill" cx="21" cy="21" r="16.5" stroke-width="3.5"
+                    stroke-dasharray="103.67" stroke-dashoffset="103.67" stroke="var(--grn)"></circle>
+          </svg>
+          <div class="ring-center"><span class="mini-icon mini-img"><img src="icons/energy.webp" alt="" draggable="false"></span></div>
+        </div>
+        <span id="energy-label" class="mini-val">—</span>
+        <span class="mini-label">Energy</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ BOTTOM-MID: SIMNC logo ============ -->
+  <div id="logo"><img src="logo.webp" alt="SIMNC - Sim Night City" draggable="false"></div>
+
+</div>
+
+<script>
+  const HEALTH_CIRC = 314.16;
+  const MINI_CIRC = 103.67;
+
+  const healthRing = document.getElementById('health-ring');
+  const healthVal  = document.getElementById('health-val');
+  const healthMax  = document.getElementById('health-max');
+  const armorVal   = document.getElementById('armor-val');
+  const staminaRing  = document.getElementById('stamina-ring');
+  const staminaLabel = document.getElementById('stamina-label');
+  const humanityRing  = document.getElementById('humanity-ring');
+  const humanityLabel = document.getElementById('humanity-label');
+  const charName   = document.getElementById('char-name');
+  const charEddies = document.getElementById('char-eddies');
+  const weatherIcon   = document.getElementById('weather-icon');
+  const daynightIcon  = document.getElementById('daynight-icon');
+  const weatherLabel = document.getElementById('weather-label');
+  const weatherTime   = document.getElementById('weather-time');
+
+  function setRing(circleEl, pct, circumference){
+    const clamped = Math.max(0, Math.min(100, pct || 0));
+    circleEl.style.strokeDashoffset = circumference * (1 - clamped / 100);
+  }
+
+  // Line icons, 24x24, stroked in currentColor. Original SIMNC glyphs.
+  const CLOUD = 'M7 18h10.5a3.5 3.5 0 0 0 .4-7A5.5 5.5 0 0 0 7.3 9.6 4.2 4.2 0 0 0 7 18z';
+  const GLYPH = {
+    sun:   '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/>',
+    partly:'<path d="M8.5 3.5v1.4M3.5 8.5h1.4M4.9 4.9l1 1M12.1 4.9l-1 1"/><path d="M5.9 11.2A3.6 3.6 0 1 1 12 7.6"/><path d="M9 19.5h9a3 3 0 0 0 .3-6A4.7 4.7 0 0 0 9.4 12a3.7 3.7 0 0 0-.4 7.5z"/>',
+    cloud: '<path d="' + CLOUD + '"/>',
+    heavy: '<path d="M5.5 9.2A4.6 4.6 0 0 1 14 7.1"/><path d="M8 20h10a3.3 3.3 0 0 0 .4-6.6A5.2 5.2 0 0 0 8.2 12 4 4 0 0 0 8 20z"/>',
+    rain:  '<path d="M7 14.5h10.5a3.5 3.5 0 0 0 .4-7A5.5 5.5 0 0 0 7.3 6.1 4.2 4.2 0 0 0 7 14.5z"/><path d="M8.5 17.5l-1 2.5M12.5 17.5l-1 2.5M16.5 17.5l-1 2.5"/>',
+    fog:   '<path d="M4 8.5h16M3 12h13M6 15.5h15M4 19h11"/>',
+    // Smog: a smokestack and its plume, the city's own pollution.
+    smog:  '<path d="M4 21V13l4 2.5V13l4 2.5V9h3v12z"/><path d="M3 21h18"/><path d="M13.5 6.5a2 2 0 0 1 2.6-1.9 2.6 2.6 0 0 1 4.6 1.2 1.8 1.8 0 0 1-.7 3.5h-4.2"/>',
+    wind:  '<path d="M3 8.5h11a2.5 2.5 0 1 0-2.5-2.5M3 12.5h16a2.5 2.5 0 1 1-2.5 2.5M3 16.5h8"/>',
+    moon:  '<path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/>',
+    rise:  '<path d="M7.5 17a4.5 4.5 0 0 1 9 0M3 17h18M12 5v5M9.5 7.5L12 5l2.5 2.5M4.6 12.2l1.2.8M19.4 12.2l-1.2.8"/><path d="M5 20.5h14"/>',
+    set:   '<path d="M7.5 17a4.5 4.5 0 0 1 9 0M3 17h18M12 10V5M9.5 7.5L12 10l2.5-2.5M4.6 12.2l1.2.8M19.4 12.2l-1.2.8"/><path d="M5 20.5h14"/>',
+  };
+  const svg = name => '<svg viewBox="0 0 24 24" aria-hidden="true">' + (GLYPH[name] || '') + '</svg>';
+
+  const WEATHER_DISPLAY = {
+    sunny:       { label: 'CLEAR SKIES',    icon: 'sun' },
+    lightclouds: { label: 'LIGHT CLOUDS',   icon: 'partly' },
+    cloudy:      { label: 'OVERCAST',       icon: 'cloud' },
+    rain:        { label: 'RAIN',           icon: 'rain' },
+    heavyclouds: { label: 'HEAVY CLOUDS',   icon: 'heavy' },
+    fog:         { label: 'DENSE FOG',      icon: 'fog' },
+    pollution:   { label: 'SMOG ADVISORY',  icon: 'smog', alert: true },
+    sandstorm:   { label: 'SANDSTORM',      icon: 'wind' },
+  };
+
+  function applyWeather(d){
+    const info = WEATHER_DISPLAY[d.weather] || { label: (d.weather || '—').toUpperCase(), icon: 'cloud' };
+    weatherLabel.textContent = info.label;
+    weatherIcon.innerHTML = svg(info.icon);
+    weatherIcon.classList.toggle('alert', info.alert === true);
+    weatherLabel.style.color = info.alert === true ? '#ffb020' : '#fff';
+    // Separate time-of-day indicator, next to the clock -- real read
+    // from the server's own hour, not guessed. Four real bands instead
+    // of just day/night: night 8pm-6am, morning 6-9am, day 9am-5pm,
+    // evening 5-8pm.
+    if (typeof d.hour === 'number' && typeof d.minute === 'number') {
+      let icon;
+      if (d.hour >= 20 || d.hour < 6)       icon = 'moon'; // night
+      else if (d.hour >= 6 && d.hour < 9)   icon = 'rise'; // morning
+      else if (d.hour >= 9 && d.hour < 17)  icon = 'sun';  // day
+      else                                   icon = 'set';  // evening (17-20)
+      daynightIcon.innerHTML = svg(icon);
+      weatherTime.textContent = String(d.hour).padStart(2,'0') + ':' + String(d.minute).padStart(2,'0');
+    }
+  }
+
+  function healthColor(pct){
+    if (pct > 60) return '#4ade80';
+    if (pct > 25) return '#ffb020';
+    return '#ff3b3b';
+  }
+  function humanityColor(pct){
+    if (pct > 60) return '#4ade80';
+    if (pct > 30) return '#ffb020';
+    return '#ff6b6b';
+  }
+
+  function applyStats(d){
+    const pct = d.healthMax ? Math.round((d.health / d.healthMax) * 100) : 0;
+    healthVal.textContent = Math.round(d.health);
+    healthMax.textContent = Math.round(d.healthMax);
+    setRing(healthRing, pct, HEALTH_CIRC);
+    healthRing.style.stroke = healthColor(pct);
+    armorVal.textContent = Math.round(d.armor || 0);
+
+    if (typeof d.stamina === 'number' && d.staminaMax) {
+      const spct = Math.round((d.stamina / d.staminaMax) * 100);
+      staminaLabel.textContent = spct + '%';
+      setRing(staminaRing, spct, MINI_CIRC);
+    }
+  }
+
+  function applyEconomy(d){
+    if (typeof d.eddies === 'number') charEddies.textContent = d.eddies.toLocaleString() + '€$';
+  }
+
+  function applyCharacter(d){
+    if (d.name) charName.textContent = d.name;
+  }
+
+  function applyHumanity(d){
+    const pct = d.ceiling ? Math.round((d.current / d.ceiling) * 100) : 0;
+    humanityLabel.textContent = Math.round(d.current) + ' / ' + Math.round(d.ceiling);
+    setRing(humanityRing, pct, MINI_CIRC);
+    humanityRing.style.stroke = humanityColor(pct);
+  }
+
+
+  // ---- rp stack status (bridge v2): name, cash, bank, job, needs ----
+  function needColor(p){ return p > 50 ? '#4ade80' : (p > 25 ? '#ffb020' : '#ff3b3b'); }
+  function setNeed(id, v){
+    if (typeof v !== 'number') return;
+    const p = Math.max(0, Math.min(100, Math.round(v)));
+    const r = document.getElementById(id + '-ring');
+    setRing(r, p, MINI_CIRC); r.style.stroke = needColor(p);
+    document.getElementById(id + '-label').textContent = p + '%';
+  }
+  function applyRp(s){
+    if (s.name) charName.textContent = s.name;
+    if (typeof s.cash === 'number') charEddies.textContent = s.cash.toLocaleString() + '€$';
+    if (typeof s.bank === 'number') document.getElementById('char-bank').textContent = s.bank.toLocaleString() + '€$';
+    document.getElementById('job-name').textContent = s.job ? (s.job.toUpperCase() + (s.jobGrade ? ' · ' + s.jobGrade : '')) : 'UNEMPLOYED';
+    const duty = document.getElementById('job-duty');
+    duty.textContent = s.job ? (s.onDuty ? '● ON DUTY' : 'OFF DUTY') : '';
+    duty.className = s.onDuty ? 'duty' : 'off';
+    setNeed('food', s.food); setNeed('water', s.water); setNeed('energy', s.energy);
+  }
+
+  if (window.Open77 && typeof Open77.on === 'function') {
+    // The surface is always up; this is the one switch for everything on it.
+    document.body.style.visibility = 'hidden';
+    Open77.on('simnc:visible', d => { document.body.style.visibility = d && d.shown ? '' : 'hidden'; });
+    // OPX draws the vehicle read-out bottom-centre; the logo steps aside for it.
+    Open77.on('simnc:vehicle', d => { document.getElementById('logo').style.visibility = d && d.active ? 'hidden' : ''; });
+    // F5 settings: a player can switch the logo off.
+    Open77.on('simnc:prefs', d => { document.getElementById('logo').style.display = d && d.logo === false ? 'none' : ''; });
+    Open77.on('simnc:rp', applyRp);
+    Open77.on('simnc:stats', applyStats);
+    Open77.on('simnc:economy', applyEconomy);
+    Open77.on('simnc:humanity', applyHumanity);
+    Open77.on('simnc:weather', applyWeather);
+    Open77.on('simnc:character', applyCharacter);
+
+    Open77.emit('simnc:ready', {});
+  } else {
+    console.warn('[simnc_hud] Open77 bridge not found — preview mode only.');
+    applyStats({ health: 82, healthMax: 100, armor: 40, stamina: 75, staminaMax: 100 });
+    applyEconomy({ character: 'Daniel Reyes', eddies: 4280 });
+    applyHumanity({ current: 65, ceiling: 100 });
+    applyWeather({ weather: 'cloudy', hour: 23, minute: 47 });
+    applyRp({ name: 'Riley Stone', cash: 500, bank: 0, job: 'unemployed', food: 99, water: 64, energy: 22 });
+  }
+</script>
+
+</body>
+</html>
