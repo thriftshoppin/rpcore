@@ -32,7 +32,7 @@ RPCore.Config = {
         journal = "INSERT",
         hudToggle = "HOME",
         layout = "F9",
-        map = "X",              -- open native City Map and select RPCore Locations
+        map = "M",              -- open the native City Map and select RPCore Locations
     },
 
     -- Net events a client may raise as a game event. Anything else is ignored.

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+- Set the rebindable map default to M and added `/rpcore.map.minimap` visibility diagnostics for the native game minimap.
+- Clarified that the game renders the map and native pins; RPCore only adds its native pins and Locations tab.
+
 ## 0.3.2
 - Added a rebindable X default and `/rpcore.map` toggle that opens the native City Map and selects RPCore Locations.
 - Added controller B to open the native map when closed; the native map retains B for its own back/close behavior.

@@ -14,7 +14,8 @@
 - HUD snapshots and activity presentation routed through EventCore.
 - RPCore restricted server commands consult EventCore's trusted admin check; Warden remains authoritative for global roles.
 - RPCore adds a saved-locations tab to Open77's native City Map and creates persistent, routable native blips from EventCore storage.
-- `/rpcore.map` and the rebindable X action open the native map and select Locations; controller B opens it when closed.
+- `/rpcore.map` and the rebindable M action open the native map and select Locations; Esc closes it, and controller B opens it when closed.
+- RPCore uses the game-rendered City Map/minimap and native pins; `/rpcore.map.minimap` checks for another resource hiding the minimap.
 - EventCore provides a skinnable chat panel and routes slash commands through Open77's existing client/server command path.
 - Server-specific logo/footer branding removed and duplicate Freeroam HUD suppression documented.
 

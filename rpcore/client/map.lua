@@ -14,6 +14,33 @@ local mapRequestPending = false
 local mapOpenedByRpcore = false
 local MAX_LOCATIONS = 64
 
+local function releaseMinimapHideClaim()
+    local hud = Open77 and Open77.hud
+    if not (hud and type(hud.setVisible) == "function") then
+        return false, "hud_visibility_api_unavailable"
+    end
+
+    -- `true` releases only RPCore's own hide claim. It deliberately does not
+    -- fight another resource that still owns a hide claim.
+    local called, accepted, visibleOrReason = pcall(hud.setVisible, "minimap", true)
+    if not called then return false, tostring(accepted) end
+    if accepted ~= true then return false, tostring(visibleOrReason or "visibility_request_refused") end
+    return true, visibleOrReason == true
+end
+
+local function reportMinimapStatus()
+    local released, visibleOrReason = releaseMinimapHideClaim()
+    if not released then
+        print("[rpcore] native minimap visibility request failed: " .. tostring(visibleOrReason))
+        return
+    end
+    if visibleOrReason then
+        print("[rpcore] native game minimap is enabled; native map pins use the same game renderer")
+    else
+        print("[rpcore] native minimap is still hidden by another resource's HUD claim")
+    end
+end
+
 local function validPosition(position)
     if type(position) ~= "table" then return false end
     for _, axis in ipairs({ "x", "y", "z" }) do
@@ -185,6 +212,8 @@ end
 
 RegisterCommand("rpcore.map", function() RPCore.Map.Toggle() end, false,
     { help = "Open the native map and RPCore saved locations" })
+RegisterCommand("rpcore.map.minimap", reportMinimapStatus, false,
+    { help = "Release RPCore's minimap hide claim and report native minimap visibility" })
 
 AddEventHandler("open77:map:opened", function()
     if not mapRequestPending then return end
@@ -211,12 +240,13 @@ end)
 
 AddEventHandler("onClientResourceStart", function(name)
     if name ~= GetCurrentResourceName() then return end
-    if Open77 and Open77.hud and type(Open77.hud.setVisible) == "function" then
-        local accepted, effective = Open77.hud.setVisible("minimap", true)
-        if not accepted or not effective then
-            print("[rpcore] native minimap is not visible; check HUD claims and ui.vanilla.hud permission")
-        end
-    end
+    -- Open77 loads alongside resources; defer the first visibility call so the
+    -- native HUD bridge is ready. Expose the same check as a command for test
+    -- sessions where another resource changes its claim later.
+    CreateThread(function()
+        Wait(1000)
+        reportMinimapStatus()
+    end)
     registerMapTab()
     -- Open77 owns the native map session; using B here opens it when closed
     -- and lets the native map own B (close/back) after it is open.
