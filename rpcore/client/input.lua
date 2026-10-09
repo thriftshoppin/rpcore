@@ -15,6 +15,7 @@ local bindings = {
     { id = "rpcore.journal", key = "journal", label = "Open activity journal" },
     { id = "rpcore.hud_toggle", key = "hudToggle", label = "Toggle RPCore HUD" },
     { id = "rpcore.layout", key = "layout", label = "Arrange RPCore HUD panels" },
+    { id = "rpcore.map", key = "map", label = "Open RPCore map" },
 }
 
 local byId = {}
@@ -80,6 +81,9 @@ local handlers = {
     end,
     layout = function()
         if RPCore.Layout and type(RPCore.Layout.Toggle) == "function" then RPCore.Layout.Toggle() end
+    end,
+    map = function()
+        if RPCore.Map and type(RPCore.Map.Toggle) == "function" then RPCore.Map.Toggle() end
     end,
 }
 

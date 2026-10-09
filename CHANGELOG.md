@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.2
+- Added a rebindable X default and `/rpcore.map` toggle that opens the native City Map and selects RPCore Locations.
+- Added controller B to open the native map when closed; the native map retains B for its own back/close behavior.
+- Reported map-open failures and tracked native map ownership so RPCore only closes sessions it opened.
+
 ## 0.3.1
 - `/rpcore.map` now opens the native City Map directly to RPCore's Locations tab when available.
 - Added the native map ready handshake and diagnostics for map open and tab failures.

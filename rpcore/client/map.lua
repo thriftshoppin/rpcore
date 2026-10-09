@@ -2,6 +2,7 @@
 -- renderer. A Locations tab is added to the native City Map; it lists saved
 -- places and can route to one without trying to redraw the game's map texture.
 RPCore = RPCore or {}
+RPCore.Map = RPCore.Map or {}
 
 local owned = {}
 local locations = {}
@@ -9,7 +10,8 @@ local mapError
 local editorAllowed = false
 local mapPage
 local mapTab
-local selectLocationsAfterOpen = false
+local mapRequestPending = false
+local mapOpenedByRpcore = false
 local MAX_LOCATIONS = 64
 
 local function validPosition(position)
@@ -127,35 +129,79 @@ local function registerMapTab()
     mapPage:send("rpcore:map:locations", { locations = locations, error = mapError, editorAllowed = editorAllowed })
 end
 
-RegisterCommand("rpcore.map", function()
-    if not mapTab then registerMapTab() end
-    if Open77 and Open77.map and type(Open77.map.open) == "function" then
-        local requestId, reason = Open77.map.open()
-        if not requestId then
-            selectLocationsAfterOpen = false
-            print("[rpcore] could not open native map: " .. tostring(reason))
-            return
-        end
-        selectLocationsAfterOpen = mapTab ~= nil
-        if not selectLocationsAfterOpen then
-            print("[rpcore] native map opened, but RPCore Locations tab is unavailable; check map.control permission and client support")
-        end
-    else
-        print("[rpcore] native map screen API is unavailable on this client")
-    end
-end, false, { help = "Open the native map and RPCore saved locations" })
+local function mapIsOpen()
+    if not (Open77 and Open77.map and type(Open77.map.isOpen) == "function") then return false end
+    local called, ok, opened = pcall(Open77.map.isOpen)
+    -- Open77 versions that return (ok, isOpen, reason) and versions that
+    -- return just isOpen are both supported.
+    if not called then return false end
+    if type(opened) == "boolean" then return ok == true and opened end
+    return ok == true
+end
 
-AddEventHandler("open77:map:opened", function()
-    if not selectLocationsAfterOpen then return end
-    selectLocationsAfterOpen = false
+local function selectLocations()
+    if not mapTab or not (Open77 and Open77.map and type(Open77.map.selectTab) == "function") then
+        print("[rpcore] native map is open, but the Locations tab is unavailable; check map.control permission")
+        return
+    end
     local selected, reason = Open77.map.selectTab(mapTab)
     if not selected then print("[rpcore] could not select Locations tab: " .. tostring(reason)) end
+end
+
+local function openMap()
+    if not mapTab then registerMapTab() end
+    if not (Open77 and Open77.map and type(Open77.map.open) == "function") then
+        print("[rpcore] native map screen API is unavailable on this client")
+        return false
+    end
+    if mapIsOpen() then
+        selectLocations()
+        TriggerServerEvent(RPCore.Net.MAP_REQUEST)
+        return true
+    end
+    local requestId, reason = Open77.map.open()
+    if not requestId then
+        mapRequestPending = false
+        print("[rpcore] could not open native map: " .. tostring(reason))
+        return false
+    end
+    mapRequestPending = true
+    return true
+end
+
+function RPCore.Map.Toggle()
+    if mapIsOpen() then
+        if mapOpenedByRpcore and Open77.map and type(Open77.map.close) == "function" then
+            local closed, reason = Open77.map.close()
+            if not closed then print("[rpcore] could not close native map: " .. tostring(reason)) end
+            return closed == true
+        end
+        selectLocations()
+        return true
+    end
+    mapOpenedByRpcore = false
+    return openMap()
+end
+
+RegisterCommand("rpcore.map", function() RPCore.Map.Toggle() end, false,
+    { help = "Open the native map and RPCore saved locations" })
+
+AddEventHandler("open77:map:opened", function()
+    if not mapRequestPending then return end
+    mapRequestPending = false
+    mapOpenedByRpcore = true
+    selectLocations()
 end)
 
 AddEventHandler("open77:map:requestFailed", function(event)
-    if not selectLocationsAfterOpen then return end
-    selectLocationsAfterOpen = false
+    if not mapRequestPending then return end
+    mapRequestPending = false
     print("[rpcore] native map open failed: " .. tostring(type(event) == "table" and event.reason or event))
+end)
+
+AddEventHandler("open77:map:closed", function()
+    mapRequestPending = false
+    mapOpenedByRpcore = false
 end)
 
 RegisterNetEvent(RPCore.Net.MAP_STATE, applyLocations)
@@ -172,6 +218,29 @@ AddEventHandler("onClientResourceStart", function(name)
         end
     end
     registerMapTab()
+    -- Open77 owns the native map session; using B here opens it when closed
+    -- and lets the native map own B (close/back) after it is open.
+    CreateThread(function()
+        local wasDown = false
+        while true do
+            Wait(25)
+            local input = Open77 and Open77.input
+            local checked, isDown = false, false
+            if input and type(input.isDown) == "function" then
+                checked, isDown = pcall(input.isDown, "padB")
+            end
+            local down = checked and isDown == true
+            local captured = false
+            if input and type(input.isCaptured) == "function" then
+                local capturedOk, capturedValue = pcall(input.isCaptured)
+                captured = not capturedOk or capturedValue == true
+            end
+            if down and not wasDown and not captured and not mapIsOpen() then
+                openMap()
+            end
+            wasDown = down == true
+        end
+    end)
     CreateThread(function()
         Wait(500)
         TriggerServerEvent(RPCore.Net.MAP_REQUEST)
@@ -185,4 +254,6 @@ AddEventHandler("onClientResourceStop", function(name)
         Open77.map.removeTab(mapTab)
     end
     mapPage, mapTab = nil, nil
+    mapRequestPending = false
+    mapOpenedByRpcore = false
 end)

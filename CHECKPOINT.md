@@ -1,9 +1,9 @@
-# RPCore migration checkpoint — development build
+# RPCore 0.3.2 migration checkpoint — development build
 
 ## Current status
 
 - The package includes compact vitals, provider-backed hunger/thirst/sanity rows, and adjustable HUD panels.
-- RPCore 0.3.1 / EventCore 0.6.1 are the current local revisions; verify chat and map behavior in game before a remote release.
+- RPCore 0.3.2 / EventCore 0.6.5 are the current local revisions; verify chat and map behavior in game before a remote release.
 - Native-map tab activation, EventCore chat input/command forwarding, storage availability, and HUD behavior still require in-game verification.
 
 ## Implemented
@@ -14,6 +14,7 @@
 - HUD snapshots and activity presentation routed through EventCore.
 - RPCore restricted server commands consult EventCore's trusted admin check; Warden remains authoritative for global roles.
 - RPCore adds a saved-locations tab to Open77's native City Map and creates persistent, routable native blips from EventCore storage.
+- `/rpcore.map` and the rebindable X action open the native map and select Locations; controller B opens it when closed.
 - EventCore provides a skinnable chat panel and routes slash commands through Open77's existing client/server command path.
 - Server-specific logo/footer branding removed and duplicate Freeroam HUD suppression documented.
 

@@ -1,6 +1,6 @@
 # RPCore
 
-**RPCore 0.3.1 development build — EventCore-ready roleplay HUD and activity framework for Open77.**
+**RPCore 0.3.2 development build — EventCore-ready roleplay HUD and activity framework for Open77.**
 
 RPCore is the home for the Open77 player-facing HUD and RP activity interface; EventCore owns the state transport contract. The project is intended to remain open source and free for anyone to use and modify. This is a development build; publication terms and licensing will be stated with the public release.
 
@@ -14,7 +14,7 @@ RPCore is the home for the Open77 player-facing HUD and RP activity interface; E
 
 Copy the `rpcore/` folder into the server's `resources/` directory. Install EventCore 0.6.1 or newer, then load `eventcore` before `rpcore`. Add `rpcore` to EventCore `server/whitelist.lua`. Remove any competing HUD resource to avoid duplicate widgets. See [`rpcore/README.md`](rpcore/README.md) and [`rpcore/install/server-load-order.jsonc`](rpcore/install/server-load-order.jsonc) for details.
 
-The player HUD, weapon card, third-person crosshair, blood overlay, RPCore activity UI, persistent native map locations, and a Locations tab in the native City Map are included. The game renders the map itself; RPCore adds persistent pins and a routeable saved-location list. Platform identity, life state, and vitals are published through EventCore. Providers for economy, jobs, needs, humanity, weather, and spawn behavior remain future work. EventCore owns the admin entry point; Warden remains authoritative for global roles and command grants.
+The player HUD, weapon card, third-person crosshair, blood overlay, RPCore activity UI, persistent native map locations, and a Locations tab in the native City Map are included. Run `/rpcore.map` or press the rebindable **X** default to open the native map on RPCore's Locations tab; controller **B** opens it when closed, while the native map handles B after opening. The game renders the map itself; RPCore adds persistent pins and a routeable saved-location list. Platform identity, life state, and vitals are published through EventCore. Providers for economy, jobs, needs, humanity, weather, and spawn behavior remain future work. EventCore owns the admin entry point; Warden remains authoritative for global roles and command grants.
 
 ## Release status
 
