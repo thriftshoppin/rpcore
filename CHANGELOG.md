@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.2
+
+- Restored RPCore health and vitals panels hidden by a legacy test-server CSS rule.
+- Removed the SIMNC-specific logo and obsolete logo UI messages.
+
 ## 0.2.1
 
 - Raised the SIMNC HUD WebUI above the OPX HUD layer while keeping the custom crosshair above it.

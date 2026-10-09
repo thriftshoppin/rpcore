@@ -2,7 +2,7 @@
 
 **EventCore-ready roleplay HUD and activity framework for Open77.**
 
-This repository contains the 0.2.1 HUD priority and native-widget ownership update. RPCore is the target home for the SIM: Night City player-facing HUD and RP activity interface; EventCore owns the state transport contract.
+This repository contains the 0.2.2 generic RPCore vitals and branding cleanup. RPCore is the target home for the SIM: Night City player-facing HUD and RP activity interface; EventCore owns the state transport contract.
 
 ## Repository layout
 

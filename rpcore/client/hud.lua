@@ -96,10 +96,6 @@ local function apply(state, force)
         send("simnc:weather", { weather = w.weather, hour = w.hour, minute = w.minute },
             tostring(w.weather) .. tostring(w.hour) .. ":" .. tostring(w.minute))
     end
-    send("simnc:vehicle", { active = state.inVehicle == true }, tostring(state.inVehicle == true))
-    -- The logo remains on unless the published view explicitly disables it.
-    local logo = not (type(state.prefs) == "table" and state.prefs.hudLogo == "off")
-    send("simnc:prefs", { logo = logo }, tostring(logo))
     sendStats(force)
 end
 

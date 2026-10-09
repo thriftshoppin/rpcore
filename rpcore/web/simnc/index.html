@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>SIMNC // HUD</title>
+<title>RPCore HUD</title>
 <style>
   /* No external requests of any kind — CDNs don't load inside Open77's
      WebUI sandbox. Everything below is plain CSS/inline SVG. */
@@ -141,16 +141,7 @@
   .frame{ perspective:900px; perspective-origin:50% 50%; }
   #char-panel{ transform:rotateY(-7deg) scale(0.88); transform-origin:top right; }
   #vitals-panel{ transform:rotateY(7deg) scale(0.88); transform-origin:bottom left; }
-  /* SIMNC 2026-10-04: the OPX HUD (simnc_core modules/hud, config/hud.lua
-     SIMNC_EXTERNAL = false) draws the character info and every vitals gauge
-     again, humanity and energy included. These two cards are kept in the
-     page, switched off, so this page still carries the wordmark and the
-     state the weapon card reads. */
-  #char-panel, #vitals-panel{ display:none !important; }
-  /* The official SIMNC wordmark: small, bottom middle -- just enough to say
-     which server this is. A soft dark halo keeps it readable on bright ground. */
-  #logo{ position:absolute; bottom:12px; left:50%; transform:translateX(-50%); pointer-events:none; opacity:0.85; }
-  #logo img{ display:block; width:78px; height:auto; filter:drop-shadow(0 1px 1px rgba(0,0,0,.8)) drop-shadow(0 0 6px rgba(0,0,0,.35)); }
+  /* The RPCore vitals panel replaces the test-server HUD gauges. */
 </style>
 </head>
 <body>
@@ -292,9 +283,6 @@
       </div>
     </div>
   </div>
-
-  <!-- ============ BOTTOM-MID: SIMNC logo ============ -->
-  <div id="logo"><img src="logo.webp" alt="SIMNC - Sim Night City" draggable="false"></div>
 
 </div>
 
@@ -438,10 +426,6 @@
     // The surface is always up; this is the one switch for everything on it.
     document.body.style.visibility = 'hidden';
     Open77.on('simnc:visible', d => { document.body.style.visibility = d && d.shown ? '' : 'hidden'; });
-    // OPX draws the vehicle read-out bottom-centre; the logo steps aside for it.
-    Open77.on('simnc:vehicle', d => { document.getElementById('logo').style.visibility = d && d.active ? 'hidden' : ''; });
-    // F5 settings: a player can switch the logo off.
-    Open77.on('simnc:prefs', d => { document.getElementById('logo').style.display = d && d.logo === false ? 'none' : ''; });
     Open77.on('simnc:rp', applyRp);
     Open77.on('simnc:stats', applyStats);
     Open77.on('simnc:economy', applyEconomy);
