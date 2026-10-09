@@ -11,7 +11,7 @@ Use `/rpcore.layout` or press the configurable **F9** binding to arrange RPCore'
 ## Install and load order
 
 1. Copy this `rpcore/` folder into the server's `resources/` folder.
-2. Install EventCore 0.6.0 or newer into the same resources root. Add `rpcore` to EventCore `server/whitelist.lua`.
+2. Install EventCore 0.6.1 or newer into the same resources root. Add `rpcore` to EventCore `server/whitelist.lua`.
 3. In `server.jsonc`, put `eventcore` before `rpcore`. Remove any other resource that creates duplicate HUD widgets. On servers that run the bundled Freeroam gamemode, apply [`install/disable-freeroam-hud.patch`](install/disable-freeroam-hud.patch) from the server root so Freeroam keeps its gameplay and scoreboard but does not create a second player HUD. Keep unrelated gameplay resources enabled when they provide services used by other installed resources.
 4. Restart the server. Confirm both resources start without errors; `/rpcore.status` reports the EventCore connection.
 5. In game, use `/rpcore.demo` to see the activity HUD. Press **F6** for RPCore Controls. Accept **F7**, decline **F11**, action **F12**, journal **Insert**, HUD visibility **Home**, and arrange panels **F9** are test defaults. Change or reset each binding in the panel or the game's key-binding settings.

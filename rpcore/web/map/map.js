@@ -108,6 +108,7 @@
       } else editorStatus.textContent = `Could not save pin: ${result && result.error || 'unknown error'}`;
     });
     Open77.on('open77:map:tabState', state => { if (state && state.active) Open77.emit('rpcore:map:refresh', {}); });
+    Open77.emit('open77:map:ready', {});
     Open77.emit('rpcore:map:refresh', {});
   } else status.textContent = 'Open77 map bridge unavailable.';
 })();

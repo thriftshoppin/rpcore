@@ -9,6 +9,7 @@ local mapError
 local editorAllowed = false
 local mapPage
 local mapTab
+local selectLocationsAfterOpen = false
 local MAX_LOCATIONS = 64
 
 local function validPosition(position)
@@ -118,19 +119,44 @@ local function registerMapTab()
         end
     end)
     AddEventHandler("open77:map:tabRemoved", function(event)
-        if event.id == mapTab then mapPage, mapTab = nil, nil end
+        if event.id == mapTab then
+            print("[rpcore] Locations tab removed: " .. tostring(event.reason or "unknown_reason"))
+            mapPage, mapTab = nil, nil
+        end
     end)
     mapPage:send("rpcore:map:locations", { locations = locations, error = mapError, editorAllowed = editorAllowed })
 end
 
 RegisterCommand("rpcore.map", function()
+    if not mapTab then registerMapTab() end
     if Open77 and Open77.map and type(Open77.map.open) == "function" then
-        local ok, reason = Open77.map.open()
-        if not ok then print("[rpcore] could not open native map: " .. tostring(reason)) end
+        local requestId, reason = Open77.map.open()
+        if not requestId then
+            selectLocationsAfterOpen = false
+            print("[rpcore] could not open native map: " .. tostring(reason))
+            return
+        end
+        selectLocationsAfterOpen = mapTab ~= nil
+        if not selectLocationsAfterOpen then
+            print("[rpcore] native map opened, but RPCore Locations tab is unavailable; check map.control permission and client support")
+        end
     else
         print("[rpcore] native map screen API is unavailable on this client")
     end
 end, false, { help = "Open the native map and RPCore saved locations" })
+
+AddEventHandler("open77:map:opened", function()
+    if not selectLocationsAfterOpen then return end
+    selectLocationsAfterOpen = false
+    local selected, reason = Open77.map.selectTab(mapTab)
+    if not selected then print("[rpcore] could not select Locations tab: " .. tostring(reason)) end
+end)
+
+AddEventHandler("open77:map:requestFailed", function(event)
+    if not selectLocationsAfterOpen then return end
+    selectLocationsAfterOpen = false
+    print("[rpcore] native map open failed: " .. tostring(type(event) == "table" and event.reason or event))
+end)
 
 RegisterNetEvent(RPCore.Net.MAP_STATE, applyLocations)
 RegisterNetEvent(RPCore.Net.MAP_CREATE_RESULT, function(result)

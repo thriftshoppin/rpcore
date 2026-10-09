@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+- `/rpcore.map` now opens the native City Map directly to RPCore's Locations tab when available.
+- Added the native map ready handshake and diagnostics for map open and tab failures.
+
 ## 0.3.0 — native map integration
 
 - Added an RPCore Locations tab to Open77's native City Map, using the game's actual map surface and saved RPCore locations.

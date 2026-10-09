@@ -3,7 +3,7 @@
 ## Current status
 
 - The package includes compact vitals, provider-backed hunger/thirst/sanity rows, and adjustable HUD panels.
-- RPCore 0.3.0 / EventCore 0.6.0 are local development changes, not yet committed or deployed.
+- RPCore 0.3.1 / EventCore 0.6.1 are the current local revisions; verify chat and map behavior in game before a remote release.
 - Native-map tab activation, EventCore chat input/command forwarding, storage availability, and HUD behavior still require in-game verification.
 
 ## Implemented
