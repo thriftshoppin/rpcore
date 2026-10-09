@@ -51,6 +51,7 @@ local function createPage()
     })
     if not surface then print("[rpcore] failed to create HUD page: " .. tostring(err)) return end
     page = surface
+    if RPCore.Layout then RPCore.Layout.RegisterSurface("activities", page, { "stack", "journal", "controls" }) end
     page:on("rpcore:settings:close", function() RPCore.CloseSettings() end)
     page:on("rpcore:bind:change", function(payload)
         if type(payload) ~= "table" or not RPCore.Client then return end

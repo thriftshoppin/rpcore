@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Added a per-player layout editor for the vitals and occupation HUD, activity panels, journal, controls, and weapon readout; panels drag independently and save their positions on that client.
+- Replaced the ring-and-card vitals page with a compact, perspective-tilted HUD of individual glass bars; stamina is green and water is blue, with no server logo or footer branding.
+- Added optional level, breath, food, and water values to the HUD adapter; unavailable fields remain hidden rather than displaying fabricated readings.
+- Added a deployment patch to suppress only Freeroam's competing HUD surface while retaining its gameplay and scoreboard.
+
+## 0.2.3
+
+- Added EventCore/Warden global-admin checks to RPCore's restricted server commands.
+- Updated the EventCore minimum version for the trusted `IsAdmin` API.
+
 ## 0.2.2
 
 - Restored RPCore health and vitals panels hidden by a legacy test-server CSS rule.

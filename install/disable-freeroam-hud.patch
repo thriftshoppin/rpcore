@@ -1,0 +1,30 @@
+diff --git a/resources/gamemodes/freeroam/shared/config.lua b/resources/gamemodes/freeroam/shared/config.lua
+--- a/resources/gamemodes/freeroam/shared/config.lua
++++ b/resources/gamemodes/freeroam/shared/config.lua
+@@ -5,4 +5,6 @@
+ FreeroamConfig = {
++    hud = { enabled = false }, -- RPCore owns the replacement player HUD on this server.
++
+     -- Chat message sent when a player announces freeroam:ready.
+     welcome = {
+         enabled = true,
+diff --git a/resources/gamemodes/freeroam/client/main.lua b/resources/gamemodes/freeroam/client/main.lua
+--- a/resources/gamemodes/freeroam/client/main.lua
++++ b/resources/gamemodes/freeroam/client/main.lua
+@@ -654,5 +654,6 @@
+ 
+-    local hudError
++    if not (Config.hud and Config.hud.enabled == false) then
++    local hudError
+     hud, hudError = WebUI.create({
+         entry = "web/hud.html",
+         layer = "hud",
+@@ -684,6 +685,8 @@
+         end)
+     end
+ 
++    end -- RPCore supplies the player HUD; leave freeroam gameplay and scoreboard active.
++
+     local scoreboardError
+     scoreboard, scoreboardError = WebUI.create({
+         entry = "web/scoreboard.html",

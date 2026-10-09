@@ -87,6 +87,11 @@ function RPCore.EventCore.GetPlayerObservers(playerId)
     return call("GetPlayerObservers", playerId)
 end
 
+--- Query Warden's global admin/owner roles through EventCore's trusted API.
+function RPCore.EventCore.IsAdmin(playerId)
+    return call("IsAdmin", playerId)
+end
+
 --- Publish a client-safe RPCore HUD snapshot through EventCore's state feed.
 function RPCore.EventCore.PublishClientState(playerId, channel, schemaVersion, payload)
     return call("PublishClientState", playerId, channel, schemaVersion, payload)

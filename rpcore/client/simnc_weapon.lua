@@ -96,6 +96,7 @@ local function create()
         return
     end
     card = surface
+    if RPCore.Layout then RPCore.Layout.RegisterSurface("weapon", card, { "weapon" }) end
     card:on("simnc:weapon:ready", function() ready = true push(true) end)
     CreateThread(function()
         while card ~= nil do

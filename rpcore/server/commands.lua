@@ -15,6 +15,24 @@ local function reply(source, text, success, raw)
     end
 end
 
+local function adminCommand(name, handler)
+    return function(source, args, raw)
+        source = tonumber(source) or 0
+        RPCore.Async("RPCore admin authorization: " .. name, function()
+            if source > 0 then
+                if not (RPCore.EventCore and RPCore.EventCore.IsAdmin) then
+                    return reply(source, "RPCore admin command unavailable: EventCore is not connected.", false, raw)
+                end
+                local allowed, reason = RPCore.EventCore.IsAdmin(source)
+                if allowed ~= true then
+                    return reply(source, "RPCore admin access denied: " .. tostring(reason or "global_admin_required"), false, raw)
+                end
+            end
+            handler(source, args or {}, raw)
+        end)
+    end
+end
+
 local function targetOf(source, args)
     local t = tonumber(args and args[1])
     if t then return t end
@@ -33,15 +51,15 @@ function RPCore.StartDemo(player)
     return inst
 end
 
-RegisterCommand(Config.demo.command, function(source, args)
+RegisterCommand(Config.demo.command, adminCommand(Config.demo.command, function(source, args)
     local player = targetOf(source, args)
     if not player then return reply(source, "usage: " .. Config.demo.command .. " <player id>") end
     local inst, why = RPCore.StartDemo(player)
     if inst then reply(source, ("RPCore demo offered to player %d (%s)"):format(player, inst.id))
     else reply(source, "RPCore demo not started: " .. tostring(why)) end
-end, true)
+end), true)
 
-RegisterCommand("rpcore.status", function(source)
+RegisterCommand("rpcore.status", adminCommand("rpcore.status", function(source)
     local rows = RPCore.Instances.Diagnostics()
     reply(source, ("RPCore %s: %d definition(s), %d instance(s)")
         :format(RPCore.VERSION, #RPCore.Definitions.List(), #rows))
@@ -53,12 +71,12 @@ RegisterCommand("rpcore.status", function(source)
                 tostring(eventCore.apiVersion or "unknown"), #eventCore.services))
     end
     for _, row in ipairs(rows) do reply(source, "  " .. row) end
-end, true)
+end), true)
 
-RegisterCommand("rpcore.cancel", function(source, args)
+RegisterCommand("rpcore.cancel", adminCommand("rpcore.cancel", function(source, args)
     local player = targetOf(source, args)
     local inst = player and RPCore.Instances.CurrentFor(player)
     if not inst then return reply(source, "RPCore: nothing to cancel") end
     RPCore.Instances.Cancel(inst, "cancelled_by_admin")
     reply(source, "RPCore: cancelled " .. inst.id)
-end, true)
+end), true)

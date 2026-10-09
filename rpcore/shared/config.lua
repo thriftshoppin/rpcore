@@ -31,6 +31,7 @@ RPCore.Config = {
         action = "F12",
         journal = "INSERT",
         hudToggle = "HOME",
+        layout = "F9",
     },
 
     -- Net events a client may raise as a game event. Anything else is ignored.

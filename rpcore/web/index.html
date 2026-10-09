@@ -7,7 +7,7 @@
 </head>
 <body>
 <!-- Every card is empty markup; app.js fills it from server messages. No external requests. -->
-<div id="stack">
+<div id="stack" data-layout-id="stack">
   <section class="card" id="offer" hidden>
     <div class="brand"></div>
     <div class="kicker">Incoming activity</div>
@@ -47,14 +47,14 @@
   </section>
 </div>
 
-<section class="card" id="journal" hidden>
+<section class="card" id="journal" data-layout-id="journal" hidden>
   <div class="brand"></div>
   <div class="tabs"><button data-tab="active" class="on">Active</button><button data-tab="history">History</button></div>
   <div id="journal-body"></div>
   <div class="foot"><kbd id="key-journal"></kbd>Close</div>
 </section>
 
-<section class="card" id="controls" hidden aria-label="RPCore controls">
+<section class="card" id="controls" data-layout-id="controls" hidden aria-label="RPCore controls">
   <div class="brand"></div>
   <div class="kicker">Field controls</div>
   <h1 class="title">Key bindings</h1>
@@ -62,9 +62,12 @@
   <div class="binding-head"><span>ACTION</span><span>KEY</span><span>EDIT</span><span></span></div>
   <div id="binding-list" class="binding-list"></div>
   <div id="capture-status" class="capture-status" aria-live="polite">ESC closes controls</div>
+  <button id="layout-open" class="close-button" type="button">Arrange HUD panels</button>
   <button id="controls-close" class="close-button" type="button">Close <kbd>ESC</kbd></button>
 </section>
 
+<script src="layout.js"></script>
+<script>RPCoreLayoutInstall('activities', ['stack','journal','controls']);</script>
 <script src="app.js"></script>
 </body>
 </html>

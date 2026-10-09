@@ -155,6 +155,9 @@
   }
   function closeControls() { capturing = null; setControls(false); if (window.Open77 && Open77.emit) Open77.emit('rpcore:settings:close', {}); }
   $('controls-close').addEventListener('click', closeControls);
+  $('layout-open').addEventListener('click', function () {
+    if (window.Open77) Open77.emit('rpcore:layout:open', {});
+  });
   document.addEventListener('keydown', function (e) {
     if (!controlsOpen) return;
     if (e.key === 'Escape') {

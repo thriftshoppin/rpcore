@@ -2,14 +2,14 @@
 
 ## Direction
 
-RPCore becomes the updated home for the existing SIM: Night City HUD. The move preserves its behavior and presentation while adding RPCore's activity HUD and EventCore connection. It must not leave a second copy of the old HUD running beside it.
+RPCore is the home of the player HUD and roleplay framework. The vitals surface uses individual perspective glass bars rather than the SIMNC circular-gauge layout. Only platform-backed values render until a real provider exists for the other rows, and the Freeroam HUD surface is disabled separately while its gameplay remains active.
 
 ## Preserve from the current server assets
 
 - Character, money, job, needs, humanity, weather, and HUD visibility from `simnc_core`'s `SimncState`.
 - Health, armor, and stamina; weapon card and ammunition; third-person crosshair; blade-hit blood overlay; sounds, existing keybind behavior, and screen/menu visibility rules.
 - Existing RPCore activity offers, accept/decline, objective tracking, completion/reward state, journal, server commands, and consumer exports.
-- The server's existing administrator panel and its authorization rules, owned by Open77's bundled `open77_admin` resource. RPCore does not replace or absorb those privileged tools.
+- Warden-owned global admin role checks and command-level ACLs. EventCore now owns the administrator entry point; existing Open77 tool handlers remain behind the restricted command dispatcher during migration.
 
 RPCore has removed the direct SIMNC client export read. EventCore owns the versioned client-state transport, and RPCore currently publishes Open77 platform identity, life state, and vitals. SIMNC-specific money, job, needs, humanity, weather, spawn, and character-session behavior remains migration work. This keeps the framework usable outside SIMNC while those domains are moved in stages.
 
@@ -21,7 +21,7 @@ RPCore has removed the direct SIMNC client export read. EventCore owns the versi
 - Move the existing SIMNC HUD scripts and web assets into the RPCore resource; update resource lifecycle checks and paths, preserve original display behavior, and remove `simnc_hud` from the supplied load-order overlay to avoid duplicate surfaces.
 - Register rebindable actions for settings, accept, decline, action, journal, and HUD visibility, with defaults checked against the supplied server resource tree.
 - Add an in-game RPCore control panel with a keybind cheat sheet and per-action rebind/reset controls using Open77's persistent key mapping API.
-- Keep the existing server admin panel and its ACL boundaries untouched.
+- Add EventCore's Warden-gated admin panel and a command bridge that checks EventCore global admin plus each existing Open77 command permission.
 
 ## Stage 2 — migrate remaining SIMNC-owned HUD data
 
@@ -39,6 +39,6 @@ RPCore has removed the direct SIMNC client export read. EventCore owns the versi
 ## Release boundaries
 
 - The HUD feed transport is implemented, but no in-game verification is claimed.
-- `simnc_hud` can be removed after migration to avoid duplicate surfaces. RPCore no longer reads `simnc_core` state; platform admin commands and panel remain owned by `open77_admin`.
+- `simnc_hud` can be removed after migration to avoid duplicate surfaces. RPCore no longer reads `simnc_core` state. EventCore owns the admin entry point; the action handlers still need staged migration from Open77's command resource.
 - Inventory, outfit, mission, and health providers are not invented in RPCore when their authoritative owners do not expose them through EventCore yet.
 - The input key defaults are test defaults, not a requirement that players keep them. All RPCore bindings remain individually rebindable in the custom panel and in Open77's standard key-binding settings.

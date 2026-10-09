@@ -53,12 +53,14 @@
 </style>
 </head>
 <body data-visible="false" data-weapon="false">
-  <section class="weapon-hud" id="weapon-hud" aria-label="Active weapon">
+  <section class="weapon-hud" id="weapon-hud" data-layout-id="weapon" aria-label="Active weapon">
     <strong id="weapon-name">Weapon</strong>
     <div class="wh-meta"><span id="weapon-type">WEAPON</span><span class="dot">&middot;</span><span id="weapon-state">HOLSTERED</span></div>
     <div class="wh-count"><span id="ammo-magazine">--</span><span class="wh-sep">/</span><span id="ammo-reserve">--</span></div>
   </section>
   <script src="weapon-icons.js"></script>
   <script src="weapon.js"></script>
+  <script src="../layout.js"></script>
+  <script>RPCoreLayoutInstall('weapon', ['weapon']);</script>
 </body>
 </html>

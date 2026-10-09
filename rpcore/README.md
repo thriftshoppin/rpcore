@@ -1,14 +1,20 @@
-# RPCore 0.2.1 — HUD priority and native widget ownership
+# RPCore 0.2.3 — HUD and player experience
 
-RPCore is the updated home for the SIM: Night City HUD and the server-agnostic RP activity HUD. This is a continuation of the existing HUD: the SIMNC character display, vitals, weapon card, crosshair, and blood overlay move into RPCore with their established display behavior. RPCore also retains its activity offers, tracker, journal, developer commands, and consumer exports.
+RPCore owns the player-facing HUD and the server-agnostic RP activity HUD. Its vitals use separate, color-coded glass bars with a slight perspective and lens treatment. Health, stamina, and armor come from Open77. Level, breath, food, and water rows appear only when a provider supplies real values. RPCore also retains its weapon card, crosshair, blood overlay, activity offers, tracker, journal, developer commands, and consumer exports.
+
+RPCore's restricted server commands query EventCore's trusted `IsAdmin` API in
+addition to Open77's command permission. Warden continues to own global roles
+and command grants.
+
+Use `/rpcore.layout` or press the configurable **F9** binding to arrange RPCore's HUD panels. Drag a panel to move it, switch between Vitals, Activities, and Weapon from the editor toolbar, then choose **Done**. Each panel position is saved per player. **Reset panel** restores the last moved panel to its default position.
 
 ## Install and load order
 
 1. Copy this `rpcore/` folder into the server's `resources/` folder.
-2. Install EventCore 0.3.1 or newer into the same resources root.
-3. In `server.jsonc`, put `eventcore` before `rpcore`. Remove `simnc_hud` from the load list after RPCore is installed, so the old and moved HUD surfaces do not both render. RPCore no longer reads `simnc_core` state; keep `simnc_core` only if another installed resource still needs it.
+2. Install EventCore 0.4.0 or newer into the same resources root.
+3. In `server.jsonc`, put `eventcore` before `rpcore`. Remove `simnc_hud` from the load list. On servers that run the bundled Freeroam gamemode, apply [`install/disable-freeroam-hud.patch`](install/disable-freeroam-hud.patch) from the server root so Freeroam keeps its gameplay and scoreboard but does not create a second player HUD. RPCore no longer reads `simnc_core` state; keep `simnc_core` only if another installed resource still needs it.
 4. Restart the server. Confirm both resources start without errors; `/rpcore.status` reports the EventCore connection.
-5. In game, use `/rpcore.demo` to see the activity HUD. Press **F6** for RPCore Controls. Accept **F7**, decline **F11**, action **F12**, journal **Insert**, and HUD visibility **Home** are test defaults. Change or reset each binding in the panel or the game's key-binding settings.
+5. In game, use `/rpcore.demo` to see the activity HUD. Press **F6** for RPCore Controls. Accept **F7**, decline **F11**, action **F12**, journal **Insert**, HUD visibility **Home**, and arrange panels **F9** are test defaults. Change or reset each binding in the panel or the game's key-binding settings.
 
 RPCore requests `ui.vanilla.hud` so it can hide the native health, stamina, and weapon widgets that its HUD replaces. Its HUD surface uses z-index 800, above the OPX HUD at 700 and below RPCore's crosshair at 850.
 
@@ -16,15 +22,16 @@ The supplied overlay at `install/server-load-order.jsonc` illustrates the two lo
 
 ## Preserved HUD surfaces
 
-- Migrated HUD surface/layout and visual elements; this beta's EventCore feed populates platform identity, life state, and vitals only.
+- Perspective glass-bar HUD with health, stamina, armor, and optional provider-backed breath, food, water, and level rows. A separate occupation card appears when a job provider supplies the value.
 - Weapon/ammunition card, third-person crosshair, and blade-hit blood overlay.
 - Existing activity offer, accept/decline flow, objectives, results/rewards, journal, resource commands, and public consumer exports.
 - F6 settings panel with the keybinding cheatsheet, per-action rebind, reset-to-test-default, and Escape close behavior.
+- In-game drag editor for vitals, occupation, activity, journal, controls and weapon panels. Layout positions persist per player.
 - Open77's bundled `open77_admin` resource remains the owner of the platform admin panel and its ACL-checked commands; RPCore does not replace or absorb those tools.
 
 ## EventCore integration
 
-RPCore requires EventCore and discovers its runtime/service catalog through documented exports. Activity presentation is delivered through EventCore's `EmitClient` route. HUD snapshots are built from Open77 server identity, life state, and vitals, then published through EventCore's versioned state feed. SIMNC-only money, job, needs, humanity, weather, and character-session behavior are still migration work; they are not read from SIMNC as a fallback.
+RPCore requires EventCore and discovers its runtime/service catalog through documented exports. Activity presentation is delivered through EventCore's `EmitClient` route. HUD snapshots are built from Open77 server identity, life state, and vitals, then published through EventCore's versioned state feed. Optional level, breath, food, and water data can be sent through the HUD state payload; those providers are not installed in this server configuration yet, so their rows stay hidden until real data is available.
 
 ## Important limits
 

@@ -14,6 +14,7 @@ local bindings = {
     { id = "rpcore.action", key = "action", label = "Advance activity action" },
     { id = "rpcore.journal", key = "journal", label = "Open activity journal" },
     { id = "rpcore.hud_toggle", key = "hudToggle", label = "Toggle RPCore HUD" },
+    { id = "rpcore.layout", key = "layout", label = "Arrange RPCore HUD panels" },
 }
 
 local byId = {}
@@ -76,6 +77,9 @@ local handlers = {
     journal = toggleJournal,
     hudToggle = function()
         if RPCore.Hud and type(RPCore.Hud.Toggle) == "function" then RPCore.Hud.Toggle() end
+    end,
+    layout = function()
+        if RPCore.Layout and type(RPCore.Layout.Toggle) == "function" then RPCore.Layout.Toggle() end
     end,
 }
 
