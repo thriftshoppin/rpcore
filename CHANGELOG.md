@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Shortened the vitals bars, removed meter tick dividers, softened the green glass tint, thickened the rails, and gave the HUD a perspective tilt.
 - Reduced the vitals HUD scale from 78% to 45% and migrated saved vitals-panel scales by the same ratio so prior layout settings do not override the smaller default.
 - Added HUNGER, THIRST, and SANITY bars with a red Blackwall effect that intensifies as cyberpsychosis severity rises; added the `SetSurvivalVitals` and `ClearSurvivalVitals` provider exports.
 - Reduced the vitals HUD footprint and aligned its backing rail with the green accent.

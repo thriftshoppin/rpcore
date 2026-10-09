@@ -21,14 +21,14 @@
     #controls{transform:translate(-50%,-50%) scale(var(--layout-scale,.85))}
     .weapon-hud{--layout-scale:.78;transform:rotateY(-7deg) scale(var(--layout-scale))}
     #occupation-panel{--layout-scale:.78}
-    body.rpcore-layout-active #rpcore-hud{width:min(560px,60vw);grid-template-columns:50px minmax(0,1fr);gap:7px}
+    body.rpcore-layout-active #rpcore-hud{width:min(280px,30vw);grid-template-columns:50px minmax(0,1fr);gap:7px}
     body.rpcore-layout-active #rpcore-hud .rail{grid-template-rows:52px 76px;gap:5px}
     body.rpcore-layout-active #rpcore-hud .body-card svg{width:36px;height:60px}
     body.rpcore-layout-active #rpcore-hud .vital{min-height:27px;grid-template-columns:24px minmax(0,1fr) 60px;gap:4px;padding:2px 4px 2px 3px}
     body.rpcore-layout-active #rpcore-hud .icon-cell{width:25px;height:25px}
     body.rpcore-layout-active #rpcore-hud .icon-cell svg{width:18px;height:18px}
     body.rpcore-layout-active #rpcore-hud .label{font-size:10px}
-    body.rpcore-layout-active #rpcore-hud .meter{height:7px}
+    body.rpcore-layout-active #rpcore-hud .meter{height:9px}
     body.rpcore-layout-active #rpcore-hud .value{font-size:9px}
   `;
 
