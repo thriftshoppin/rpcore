@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added HUNGER, THIRST, and SANITY bars with a red Blackwall effect that intensifies as cyberpsychosis severity rises; added the `SetSurvivalVitals` and `ClearSurvivalVitals` provider exports.
+- Reduced the vitals HUD footprint and aligned its backing rail with the green accent.
 - Added a per-player layout editor for the vitals and occupation HUD, activity panels, journal, controls, and weapon readout; panels drag independently and save their positions on that client.
 - Replaced the ring-and-card vitals page with a compact, perspective-tilted HUD of individual glass bars; stamina is green and water is blue, with no server logo or footer branding.
 - Added optional level, breath, food, and water values to the HUD adapter; unavailable fields remain hidden rather than displaying fabricated readings.

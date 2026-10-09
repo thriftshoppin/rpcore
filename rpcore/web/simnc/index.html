@@ -11,18 +11,18 @@
     html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent}
     body{color:#f4f8ff;font-family:Rajdhani,'Bahnschrift Condensed','Arial Narrow',sans-serif;pointer-events:none;user-select:none}
     body:not([data-visible="true"]) #rpcore-hud{visibility:hidden}
-    :root{--cyan:#19d9f5;--health:#ff304d;--stamina:#17d68a;--armor:#ffbd2e;--breath:#a957ff;--food:#18d78a;--water:#22b8ff;--mono:'IBM Plex Mono',Consolas,monospace}
-    #rpcore-hud{position:absolute;left:clamp(18px,3.2vw,58px);bottom:clamp(20px,5vh,54px);display:grid;grid-template-columns:76px minmax(360px, min(72vw, 1440px));align-items:center;gap:14px;perspective:1100px;perspective-origin:left bottom;transform:rotateY(5deg);transform-origin:left bottom;filter:drop-shadow(0 8px 19px rgba(0,0,0,.4));}
-    .rail{display:grid;grid-template-rows:86px 148px;gap:10px;transform:translateZ(8px)}
-    .rail-card{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--cyan);background:linear-gradient(135deg,rgba(9,30,42,.84),rgba(2,10,18,.76));border:1px solid rgba(25,217,245,.52);clip-path:polygon(8px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 8px);backdrop-filter:blur(9px) saturate(1.35);-webkit-backdrop-filter:blur(9px) saturate(1.35);box-shadow:inset 0 1px rgba(255,255,255,.18),inset 0 -12px 22px rgba(25,217,245,.05),0 0 16px rgba(25,217,245,.12)}
-    .rail-card::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,.15),transparent 25%,transparent 70%,rgba(25,217,245,.08));transform:skewX(-12deg) translateX(5px)}
+    :root{--cyan:#19d9f5;--hud-green:#4ade80;--hud-green-rgb:74,222,128;--health:#ff304d;--stamina:#17d68a;--armor:#ffbd2e;--breath:#a957ff;--food:#18d78a;--water:#22b8ff;--mono:'IBM Plex Mono',Consolas,monospace}
+    #rpcore-hud{--layout-scale:.78;position:absolute;left:clamp(18px,3.2vw,58px);bottom:clamp(20px,5vh,54px);display:grid;grid-template-columns:58px minmax(260px, min(52vw, 860px));align-items:center;gap:10px;perspective:1100px;perspective-origin:left bottom;transform:rotateY(5deg) scale(var(--layout-scale));transform-origin:left bottom;filter:drop-shadow(0 8px 19px rgba(0,0,0,.4));}
+    .rail{display:grid;grid-template-rows:64px 106px;gap:7px;transform:translateZ(8px)}
+    .rail-card{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--hud-green);background:linear-gradient(135deg,rgba(10,27,17,.88),rgba(3,12,8,.82));border:1px solid rgba(var(--hud-green-rgb),.58);clip-path:polygon(8px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 8px);backdrop-filter:blur(9px) saturate(1.35);-webkit-backdrop-filter:blur(9px) saturate(1.35);box-shadow:inset 0 1px rgba(255,255,255,.18),inset 0 -12px 22px rgba(var(--hud-green-rgb),.08),0 0 16px rgba(var(--hud-green-rgb),.14)}
+    .rail-card::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,.15),transparent 25%,transparent 70%,rgba(var(--hud-green-rgb),.12));transform:skewX(-12deg) translateX(5px)}
     .level-card{flex-direction:column;line-height:1}
     .level-label{font-size:12px;letter-spacing:.17em;font-weight:700}
     #level-value{margin-top:4px;font-size:32px;font-weight:700;text-shadow:0 0 13px currentColor}
-    .body-card svg{width:65px;height:102px;fill:rgba(25,217,245,.72);filter:drop-shadow(0 0 9px rgba(25,217,245,.48));transform:perspective(140px) rotateY(-8deg) translateZ(7px)}
-    .vitals{display:grid;gap:7px;transform-style:preserve-3d}
-    .vital{--tone:var(--health);--tone-rgb:255,48,77;position:relative;display:grid;grid-template-columns:44px minmax(0,1fr) 104px;align-items:center;gap:11px;min-height:48px;padding:4px 9px 4px 5px;overflow:hidden;transform:translateZ(3px) rotateY(-1deg);background:linear-gradient(105deg,rgba(7,13,24,.56),rgba(7,13,24,.78) 72%,rgba(7,13,24,.56));border:1px solid rgba(var(--tone-rgb),.25);clip-path:polygon(9px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 9px);backdrop-filter:blur(12px) saturate(1.55) contrast(1.04);-webkit-backdrop-filter:blur(12px) saturate(1.55) contrast(1.04);box-shadow:inset 0 1px rgba(255,255,255,.12),inset 0 -1px rgba(var(--tone-rgb),.2),0 0 14px rgba(var(--tone-rgb),.07)}
-    .vital::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(106deg,rgba(255,255,255,.14),transparent 19%,transparent 77%,rgba(var(--tone-rgb),.12));transform:skewX(-17deg) translateX(10px);transform-origin:center}
+    .body-card svg{width:46px;height:76px;fill:rgba(var(--hud-green-rgb),.78);filter:drop-shadow(0 0 9px rgba(var(--hud-green-rgb),.5));transform:perspective(140px) rotateY(-8deg) translateZ(7px)}
+    .vitals{display:grid;gap:4px;transform-style:preserve-3d}
+    .vital{--tone:var(--health);--tone-rgb:255,48,77;position:relative;display:grid;grid-template-columns:36px minmax(0,1fr) 88px;align-items:center;gap:8px;min-height:40px;padding:3px 7px 3px 4px;overflow:hidden;transform:translateZ(3px) rotateY(-1deg);background:linear-gradient(105deg,rgba(9,20,15,.64),rgba(7,17,13,.82) 72%,rgba(9,20,15,.64));border:1px solid rgba(var(--hud-green-rgb),.25);clip-path:polygon(9px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 9px);backdrop-filter:blur(12px) saturate(1.55) contrast(1.04);-webkit-backdrop-filter:blur(12px) saturate(1.55) contrast(1.04);box-shadow:inset 0 1px rgba(255,255,255,.12),inset 0 -1px rgba(var(--hud-green-rgb),.18),0 0 14px rgba(var(--hud-green-rgb),.06)}
+    .vital::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(106deg,rgba(255,255,255,.14),transparent 19%,transparent 77%,rgba(var(--hud-green-rgb),.15));transform:skewX(-17deg) translateX(10px);transform-origin:center}
     .vital[hidden]{display:none}
     .vital[data-kind="health"]{--tone:var(--health);--tone-rgb:255,48,77}
     .vital[data-kind="stamina"]{--tone:var(--stamina);--tone-rgb:23,214,138}
@@ -30,19 +30,23 @@
     .vital[data-kind="breath"]{--tone:var(--breath);--tone-rgb:169,87,255}
     .vital[data-kind="food"]{--tone:var(--food);--tone-rgb:24,215,138}
     .vital[data-kind="water"]{--tone:var(--water);--tone-rgb:34,184,255}
-    .icon-cell{position:relative;z-index:1;display:grid;place-items:center;width:40px;height:40px;color:var(--tone);background:linear-gradient(145deg,rgba(var(--tone-rgb),.16),rgba(4,10,19,.36));border:1px solid rgba(var(--tone-rgb),.3);clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);transform:perspective(120px) rotateY(-12deg) rotateX(3deg) translateZ(7px);box-shadow:inset 0 1px rgba(255,255,255,.2),0 0 13px rgba(var(--tone-rgb),.15)}
-    .icon-cell svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px currentColor)}
+    .vital[data-kind="sanity"]{--tone:#4ade80;--tone-rgb:74,222,128;--psychosis:0}
+    .vital[data-kind="sanity"]::before{background:linear-gradient(106deg,rgba(255,255,255,.14),transparent 19%,transparent 77%,rgba(255,35,58,var(--psychosis)))}
+    .vital[data-kind="sanity"]::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:var(--psychosis);background:linear-gradient(180deg,transparent 42%,rgba(255,22,52,.05) 47%,rgba(255,83,104,.82) 50%,rgba(255,25,49,.18) 54%,transparent 61%),repeating-linear-gradient(90deg,rgba(255,28,54,.16) 0 1px,transparent 1px 7px),repeating-linear-gradient(0deg,transparent 0 5px,rgba(255,28,54,.12) 5px 6px),linear-gradient(90deg,rgba(40,0,8,.9),rgba(0,0,0,.45) 48%,rgba(55,0,10,.86))}
+    .vital[data-kind="sanity"] .meter{border-color:rgba(255,48,77,var(--psychosis));box-shadow:inset 0 1px 3px rgba(0,0,0,.65),0 0 var(--psychosis-glow,0px) rgba(255,32,60,var(--psychosis))}
+    .icon-cell{position:relative;z-index:1;display:grid;place-items:center;width:32px;height:32px;color:var(--tone);background:linear-gradient(145deg,rgba(var(--tone-rgb),.16),rgba(4,10,19,.36));border:1px solid rgba(var(--tone-rgb),.3);clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);transform:perspective(120px) rotateY(-12deg) rotateX(3deg) translateZ(7px);box-shadow:inset 0 1px rgba(255,255,255,.2),0 0 13px rgba(var(--tone-rgb),.15)}
+    .icon-cell svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px currentColor)}
     .meter-block{position:relative;z-index:1;min-width:0;display:grid;gap:2px;transform:translateZ(4px)}
-    .label{color:var(--tone);font-size:16px;font-weight:700;letter-spacing:.09em;line-height:1;text-shadow:0 0 8px rgba(var(--tone-rgb),.35)}
-    .meter{position:relative;height:12px;margin:0 2px;overflow:hidden;transform:perspective(250px) rotateY(-1.5deg) skewX(-8deg);background:linear-gradient(180deg,rgba(4,10,19,.8),rgba(12,23,36,.55));border:1px solid rgba(var(--tone-rgb),.26);box-shadow:inset 0 1px 3px rgba(0,0,0,.65),0 0 8px rgba(var(--tone-rgb),.06)}
+    .label{color:var(--tone);font-size:14px;font-weight:700;letter-spacing:.09em;line-height:1;text-shadow:0 0 8px rgba(var(--tone-rgb),.35)}
+    .meter{position:relative;height:10px;margin:0 2px;overflow:hidden;transform:perspective(250px) rotateY(-1.5deg) skewX(-8deg);background:linear-gradient(180deg,rgba(4,10,19,.8),rgba(12,23,36,.55));border:1px solid rgba(var(--tone-rgb),.26);box-shadow:inset 0 1px 3px rgba(0,0,0,.65),0 0 8px rgba(var(--tone-rgb),.06)}
     .meter-fill{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(180deg,rgba(255,255,255,.48),rgba(255,255,255,.04) 44%),linear-gradient(90deg,rgba(var(--tone-rgb),.76),var(--tone));box-shadow:0 0 10px rgba(var(--tone-rgb),.56),inset 0 0 5px rgba(255,255,255,.22);transition:width .22s ease-out}
     .meter::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 1px),rgba(3,9,17,.44) calc(10% - 1px) 10%);pointer-events:none}
-    .value{position:relative;z-index:1;text-align:right;color:var(--tone);font:700 14px/1 var(--mono);letter-spacing:-.04em;white-space:nowrap;text-shadow:0 0 8px rgba(var(--tone-rgb),.42);transform:translateZ(6px)}
+    .value{position:relative;z-index:1;text-align:right;color:var(--tone);font:700 12px/1 var(--mono);letter-spacing:-.04em;white-space:nowrap;text-shadow:0 0 8px rgba(var(--tone-rgb),.42);transform:translateZ(6px)}
     .vital.critical{animation:critical 1s ease-in-out infinite}
-    .occupation-panel{position:fixed;top:24px;right:24px;min-width:240px;display:flex;flex-direction:column;gap:3px;padding:11px 15px;color:#effaff;background:linear-gradient(135deg,rgba(8,24,34,.9),rgba(3,10,18,.82));border:1px solid rgba(25,217,245,.43);clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px);backdrop-filter:blur(12px) saturate(1.4);-webkit-backdrop-filter:blur(12px) saturate(1.4);box-shadow:inset 0 1px rgba(255,255,255,.14),0 8px 24px rgba(0,0,0,.38)}
-    .occupation-kicker{color:var(--cyan);font-size:10px;font-weight:700;letter-spacing:.18em}
-    #occupation-job{font-size:19px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
-    #occupation-meta{color:#9fb7c1;font:11px/1.2 var(--mono);letter-spacing:.04em}
+    .occupation-panel{--layout-scale:.78;position:fixed;top:16px;right:16px;min-width:190px;display:flex;flex-direction:column;gap:3px;padding:8px 10px;color:#effaff;background:linear-gradient(135deg,rgba(10,25,17,.92),rgba(3,12,8,.84));border:1px solid rgba(var(--hud-green-rgb),.58);clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px);backdrop-filter:blur(12px) saturate(1.4);-webkit-backdrop-filter:blur(12px) saturate(1.4);box-shadow:inset 0 1px rgba(255,255,255,.14),0 8px 24px rgba(0,0,0,.38),0 0 16px rgba(var(--hud-green-rgb),.12);transform:scale(var(--layout-scale));transform-origin:top right}
+    .occupation-kicker{color:var(--cyan);font-size:9px;font-weight:700;letter-spacing:.18em}
+    #occupation-job{font-size:16px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+    #occupation-meta{color:#9fb7c1;font:10px/1.2 var(--mono);letter-spacing:.04em}
     @keyframes critical{50%{filter:brightness(.72);box-shadow:0 0 18px rgba(255,48,77,.3)}}
     @media(max-width:760px){#rpcore-hud{left:12px;bottom:18px;grid-template-columns:54px minmax(0,1fr);width:calc(100vw - 24px);gap:8px}.rail{grid-template-rows:61px 112px;gap:7px}.body-card svg{width:46px;height:87px}.vitals{gap:5px}.vital{grid-template-columns:30px minmax(0,1fr) 76px;min-height:35px;gap:6px;padding-right:5px}.icon-cell{width:27px;height:27px}.icon-cell svg{width:20px;height:20px}.label{font-size:10px}.value{font-size:10px}.meter{height:8px}#level-value{font-size:26px}}
     @media(prefers-reduced-motion:reduce){.vital,.meter-fill{animation:none;transition:none}}
@@ -78,11 +82,15 @@
       </article>
       <article class="vital" data-kind="food" data-vital="food" hidden>
         <span class="icon-cell" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3v7M4.5 3v4.5A2.5 2.5 0 0 0 7 10a2.5 2.5 0 0 0 2.5-2.5V3M7 10v11M16 3v18M16 3c2.4 2.1 3.5 5.1 3.5 8H16"/></svg></span>
-        <span class="meter-block"><span class="label">FOOD</span><span class="meter"><i class="meter-fill"></i></span></span><strong class="value">—</strong>
+        <span class="meter-block"><span class="label">HUNGER</span><span class="meter"><i class="meter-fill"></i></span></span><strong class="value">—</strong>
       </article>
       <article class="vital" data-kind="water" data-vital="water" hidden>
         <span class="icon-cell" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.5S5 11 5 15.2a7 7 0 0 0 14 0C19 11 12 2.5 12 2.5Z"/><path d="M9 16.5a3 3 0 0 0 3 3"/></svg></span>
-        <span class="meter-block"><span class="label">WATER</span><span class="meter"><i class="meter-fill"></i></span></span><strong class="value">—</strong>
+        <span class="meter-block"><span class="label">THIRST</span><span class="meter"><i class="meter-fill"></i></span></span><strong class="value">—</strong>
+      </article>
+      <article class="vital" data-kind="sanity" data-vital="sanity" aria-label="Sanity and cyberpsychosis severity" hidden>
+        <span class="icon-cell" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 0-5.8 1.1A3.4 3.4 0 0 0 4 10a3.5 3.5 0 0 0 1.3 5.9A3.2 3.2 0 0 0 11 18v-6a2 2 0 0 0-2-2M12 3a3 3 0 0 1 5.8 1.1A3.4 3.4 0 0 1 20 10a3.5 3.5 0 0 1-1.3 5.9A3.2 3.2 0 0 1 13 18v-6a2 2 0 0 1 2-2M12 3v18"/></svg></span>
+        <span class="meter-block"><span class="label">SANITY</span><span class="meter"><i class="meter-fill"></i></span></span><strong class="value">—</strong>
       </article>
     </section>
   </main>
@@ -128,8 +136,21 @@
       function applyRoleplay(data) {
         if (!data || typeof data !== 'object') return;
         setGauge('breath', number(data.breath), number(data.breathMax));
-        setGauge('food', number(data.food), number(data.foodMax) || 100);
-        setGauge('water', number(data.water), number(data.waterMax) || 100);
+        setGauge('food', number(data.hunger ?? data.food), number(data.hungerMax ?? data.foodMax) || 100);
+        setGauge('water', number(data.thirst ?? data.water), number(data.thirstMax ?? data.waterMax) || 100);
+        setGauge('sanity', number(data.sanity), number(data.sanityMax) || 100);
+        const sanity = rows.get('sanity');
+        if (sanity && number(data.sanity) !== null) {
+          const maximum = number(data.sanityMax) > 0 ? number(data.sanityMax) : 100;
+          const psychosis = Math.max(0, Math.min(1, number(data.sanity) / maximum));
+          const red = Math.round(74 + (255 - 74) * psychosis);
+          const green = Math.round(222 * (1 - psychosis));
+          const blue = Math.round(128 * (1 - psychosis));
+          sanity.style.setProperty('--psychosis', psychosis.toFixed(3));
+          sanity.style.setProperty('--psychosis-glow', `${Math.round(5 + psychosis * 15)}px`);
+          sanity.style.setProperty('--tone', `rgb(${red},${green},${blue})`);
+          sanity.style.setProperty('--tone-rgb', `${red},${green},${blue}`);
+        }
         const level = number(data.level);
         levelCard.hidden = level === null;
         if (level !== null) levelValue.textContent = String(Math.max(0, Math.round(level)));
@@ -150,7 +171,7 @@
         document.body.dataset.visible = 'true';
         document.body.dataset.preview = 'true';
         applyStats({ health: 742, healthMax: 1000, stamina: 680, staminaMax: 800, armor: 320, armorMax: 500 });
-        applyRoleplay({ breath: 96, breathMax: 100, food: 58, water: 72, level: 12 });
+        applyRoleplay({ breath: 96, breathMax: 100, food: 58, water: 72, sanity: 72, level: 12 });
       }
     })();
   </script>

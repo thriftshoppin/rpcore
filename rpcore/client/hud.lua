@@ -72,22 +72,28 @@ local function apply(state, force)
     if force then last = {} end
 
     local needs = type(state.needs) == "table" and state.needs or {}
+    local survival = type(state.survival) == "table" and state.survival or {}
     if state.cash ~= nil or state.bank ~= nil or state.job ~= nil or needs.hunger ~= nil
         or needs.thirst ~= nil or needs.energy ~= nil or state.food ~= nil or state.water ~= nil
-        or state.breath ~= nil or state.level ~= nil then
+        or state.breath ~= nil or state.level ~= nil or state.survival ~= nil then
         local rp = {
             name = state.name, cash = state.cash, bank = state.bank,
             job = state.job, jobGrade = state.jobGrade, onDuty = state.onDuty == true,
             level = state.level, breath = state.breath, breathMax = state.breathMax,
-            food = needs.hunger or state.food, foodMax = needs.hungerMax or state.foodMax,
-            water = needs.thirst or state.water, waterMax = needs.thirstMax or state.waterMax,
+            food = survival.hunger or needs.hunger or state.food,
+            foodMax = survival.hungerMax or needs.hungerMax or state.foodMax,
+            water = survival.thirst or needs.thirst or state.water,
+            waterMax = survival.thirstMax or needs.thirstMax or state.waterMax,
+            sanity = survival.sanity or state.sanity,
+            sanityMax = survival.sanityMax or state.sanityMax,
             energy = needs.energy,
         }
         send("simnc:rp", rp, table.concat({ tostring(rp.name), tostring(rp.cash), tostring(rp.bank), tostring(rp.job),
             tostring(rp.jobGrade), tostring(rp.onDuty), tostring(rp.level), tostring(rp.breath),
             tostring(rp.breathMax), tostring(rp.foodMax), tostring(rp.waterMax),
             math.floor(tonumber(rp.food) or -1), math.floor(tonumber(rp.water) or -1),
-            math.floor(tonumber(rp.energy) or -1) }, "|"))
+            math.floor(tonumber(rp.energy) or -1), math.floor(tonumber(rp.sanity) or -1),
+            math.floor(tonumber(rp.sanityMax) or -1) }, "|"))
     elseif state.name then
         send("simnc:character", { name = state.name }, tostring(state.name))
     end

@@ -1,6 +1,6 @@
 # RPCore 0.2.3 — HUD and player experience
 
-RPCore owns the player-facing HUD and the server-agnostic RP activity HUD. Its vitals use separate, color-coded glass bars with a slight perspective and lens treatment. Health, stamina, and armor come from Open77. Level, breath, food, and water rows appear only when a provider supplies real values. RPCore also retains its weapon card, crosshair, blood overlay, activity offers, tracker, journal, developer commands, and consumer exports.
+RPCore owns the player-facing HUD and the server-agnostic RP activity HUD. Its vitals use separate, color-coded glass bars with a slight perspective and lens treatment. Health, stamina, and armor come from Open77. Hunger, thirst, and sanity bars accept values from another server resource; higher sanity severity shifts the bar red and adds Blackwall interference. Level and breath rows remain optional. RPCore also retains its weapon card, crosshair, blood overlay, activity offers, tracker, journal, developer commands, and consumer exports.
 
 RPCore's restricted server commands query EventCore's trusted `IsAdmin` API in
 addition to Open77's command permission. Warden continues to own global roles
@@ -31,7 +31,7 @@ The supplied overlay at `install/server-load-order.jsonc` illustrates the two lo
 
 ## EventCore integration
 
-RPCore requires EventCore and discovers its runtime/service catalog through documented exports. Activity presentation is delivered through EventCore's `EmitClient` route. HUD snapshots are built from Open77 server identity, life state, and vitals, then published through EventCore's versioned state feed. Optional level, breath, food, and water data can be sent through the HUD state payload; those providers are not installed in this server configuration yet, so their rows stay hidden until real data is available.
+RPCore requires EventCore and discovers its runtime/service catalog through documented exports. Activity presentation is delivered through EventCore's `EmitClient` route. HUD snapshots are built from Open77 server identity, life state, and vitals, then published through EventCore's versioned state feed. A needs or character resource can call RPCore's `SetSurvivalVitals` server export to supply hunger, thirst, and sanity values; RPCore holds the latest supplied values in memory and renders them. See [`docs/survival-vitals.md`](docs/survival-vitals.md) for the payload and lifecycle contract. No provider is bundled, so those rows stay hidden until another resource supplies values.
 
 ## Important limits
 
@@ -47,3 +47,4 @@ RPCore requires EventCore and discovers its runtime/service catalog through docu
 - `web/`: RPCore activity HUD plus the migrated SIMNC UI, images, fonts, weapon, crosshair, and blood layers.
 - `install/server-load-order.jsonc`: small load-order merge example.
 - `docs/CONSUMING.md`: RPCore activity API for other resources.
+- `docs/survival-vitals.md`: provider API for hunger, thirst, and sanity bars.

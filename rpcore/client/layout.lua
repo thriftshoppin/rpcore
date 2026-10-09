@@ -70,7 +70,11 @@ function Layout.RegisterSurface(id, page, elementIds)
         if not x or not y or x ~= x or y ~= y then return end
         x, y = math.max(0, math.min(1, x)), math.max(0, math.min(1, y))
         positions[id] = positions[id] or {}
-        positions[id][payload.element] = { x = x, y = y }
+        local previous = positions[id][payload.element] or {}
+        local scale = tonumber(payload.scale) or tonumber(previous.scale) or 0.78
+        if scale ~= scale then scale = 0.78 end
+        scale = math.max(0.6, math.min(1, scale))
+        positions[id][payload.element] = { x = x, y = y, scale = scale }
         persist()
         publishAll()
     end)

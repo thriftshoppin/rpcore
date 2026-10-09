@@ -6,6 +6,8 @@ local CHANNEL = "rpcore.hud"
 local SCHEMA_VERSION = 1
 local SAMPLE_MS = 1000
 local lastPublishError = nil
+local survivalByPlayer = {}
+local publish
 
 local function playerId(value)
     local id = tonumber(value)
@@ -52,11 +54,55 @@ local function buildView(id)
         loggedIn = true,
         name = name,
         stats = stats,
+        survival = survivalByPlayer[id] or {},
         inVehicle = false,
     }
 end
 
-local function publish(rawId)
+local function setSurvivalVitals(rawId, values)
+    local id = playerId(rawId)
+    if not id then return false, "invalid_player_id" end
+    if type(values) ~= "table" then return false, "invalid_vitals" end
+
+    local current = {}
+    for key, value in pairs(survivalByPlayer[id] or {}) do current[key] = value end
+    local changed = false
+    for _, key in ipairs({ "hunger", "thirst", "sanity" }) do
+        local value = values[key]
+        local maximum = values[key .. "Max"]
+        if value ~= nil then
+            value = finite(value)
+            maximum = maximum == nil and (current[key .. "Max"] or 100) or finite(maximum)
+            if not value or not maximum or maximum <= 0 then return false, "invalid_" .. key end
+            current[key] = math.max(0, math.min(maximum, value))
+            current[key .. "Max"] = maximum
+            changed = true
+        elseif maximum ~= nil then
+            maximum = finite(maximum)
+            if not maximum or maximum <= 0 then return false, "invalid_" .. key .. "_max" end
+            current[key .. "Max"] = maximum
+            if current[key] ~= nil then current[key] = math.min(current[key], maximum) end
+            changed = true
+        end
+    end
+    if not changed then return false, "no_vitals_provided" end
+    survivalByPlayer[id] = current
+    publish(id)
+    return true
+end
+
+RPCore.Hud = RPCore.Hud or {}
+RPCore.Hud.SetSurvivalVitals = setSurvivalVitals
+exports("SetSurvivalVitals", setSurvivalVitals)
+exports("ClearSurvivalVitals", function(rawId)
+    local id = playerId(rawId)
+    if not id then return false, "invalid_player_id" end
+    survivalByPlayer[id] = nil
+    publish(id)
+    return true
+end)
+
+publish = function(rawId)
     local id = playerId(rawId)
     if not id or not RPCore.EventCore then return end
     local view = buildView(id)
@@ -80,6 +126,10 @@ end
 
 AddEventHandler("open77:playerStatsChanged", function(id) publish(id or source) end)
 AddEventHandler("open77:playerDied", function(id) publish(id) end)
+AddEventHandler("playerDropped", function()
+    local id = playerId(source)
+    if id then survivalByPlayer[id] = nil end
+end)
 
 CreateThread(function()
     while true do
