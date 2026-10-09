@@ -34,11 +34,38 @@ local function reportMinimapStatus()
         print("[rpcore] native minimap visibility request failed: " .. tostring(visibleOrReason))
         return
     end
-    if visibleOrReason then
-        print("[rpcore] native game minimap is enabled; native map pins use the same game renderer")
-    else
-        print("[rpcore] native minimap is still hidden by another resource's HUD claim")
+    local hud = Open77 and Open77.hud
+    local stateOk, effective, stateReason = false, nil, nil
+    if hud and type(hud.isVisible) == "function" then
+        stateOk, effective, stateReason = pcall(hud.isVisible, "minimap")
     end
+    local perspective = Open77 and Open77.perspective and type(Open77.perspective.get) == "function"
+        and Open77.perspective.get() or "unknown"
+    if visibleOrReason then
+        local message = "Native minimap is enabled at the game's HUD position; map pins use the game renderer. View: " .. tostring(perspective) .. "."
+        print("[rpcore] " .. message)
+        TriggerEvent("chat:addMessage", { type = "system", author = "RPCore", text = message })
+    else
+        local reason = stateOk and (effective == false and "another resource still owns a hide claim" or "Open77 reports no active hide claim")
+            or tostring(stateReason or visibleOrReason)
+        local message = "Native minimap is hidden: " .. reason .. ". View: " .. tostring(perspective) .. "."
+        print("[rpcore] " .. message)
+        TriggerEvent("chat:addMessage", { type = "system", author = "RPCore", text = message })
+    end
+end
+
+local function restoreMinimapAfterTransition()
+    CreateThread(function()
+        for _, delay in ipairs({ 250, 900, 1800 }) do
+            Wait(delay)
+            local released, effective = releaseMinimapHideClaim()
+            if not released then
+                print("[rpcore] minimap restore after HUD transition failed: " .. tostring(effective))
+                return
+            end
+        end
+        reportMinimapStatus()
+    end)
 end
 
 local function validPosition(position)
@@ -212,8 +239,31 @@ end
 
 RegisterCommand("rpcore.map", function() RPCore.Map.Toggle() end, false,
     { help = "Open the native map and RPCore saved locations" })
-RegisterCommand("rpcore.map.minimap", reportMinimapStatus, false,
-    { help = "Release RPCore's minimap hide claim and report native minimap visibility" })
+RegisterCommand("rpcore.map.minimap", function(_, args)
+    local action = type(args) == "table" and tostring(args[1] or ""):lower() or ""
+    if action == "on" then
+        local settings = Open77 and Open77.settings
+        if not settings or type(settings.set) ~= "function" then
+            local message = "Could not enable the native minimap: Open77 settings API unavailable."
+            print("[rpcore] " .. message)
+            TriggerEvent("chat:addMessage", { type = "system", author = "RPCore", text = message })
+            return
+        end
+        local ok, reason = settings.set("/interface/hud", "minimap", 1)
+        if not ok then
+            local message = "Could not enable the native minimap: " .. tostring(reason or "setting refused") .. "."
+            print("[rpcore] " .. message)
+            TriggerEvent("chat:addMessage", { type = "system", author = "RPCore", text = message })
+            return
+        end
+        CreateThread(function() Wait(800); reportMinimapStatus() end)
+        return
+    end
+    reportMinimapStatus()
+end, false, {
+    help = "Check native map visibility; add 'on' to enable the player's Open77 Minimap setting",
+    parameters = { { name = "on", optional = true, help = "Turn on the player option at Settings > Gameplay > HUD Elements > Minimap" } },
+})
 
 AddEventHandler("open77:map:opened", function()
     if not mapRequestPending then return end
@@ -236,6 +286,15 @@ end)
 RegisterNetEvent(RPCore.Net.MAP_STATE, applyLocations)
 RegisterNetEvent(RPCore.Net.MAP_CREATE_RESULT, function(result)
     if mapPage and type(result) == "table" then mapPage:send("rpcore:map:create:result", result) end
+end)
+
+-- Open77/game menus can reset native HUD presentation as they hand control
+-- back to gameplay. Releasing RPCore's own minimap claim after that edge keeps
+-- the native map in its normal game position without drawing a substitute.
+AddEventHandler("open77:menuStateChanged", function(open)
+    if open == false or tostring(open) == "false" or tostring(open) == "0" then
+        restoreMinimapAfterTransition()
+    end
 end)
 
 AddEventHandler("onClientResourceStart", function(name)
