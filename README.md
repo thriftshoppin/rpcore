@@ -1,8 +1,8 @@
 # RPCore
 
-**EventCore-ready roleplay HUD and activity framework for Open77.**
+**RPCore 0.2.4 development build — EventCore-ready roleplay HUD and activity framework for Open77.**
 
-This repository contains the 0.2.2 generic RPCore vitals and branding cleanup. RPCore is the target home for the SIM: Night City player-facing HUD and RP activity interface; EventCore owns the state transport contract.
+This repository contains the 0.2.4 HUD iteration. RPCore is the home for the SIM: Night City player-facing HUD and RP activity interface; EventCore owns the state transport contract. The test-bench build has been visually reviewed, but this remains a development build rather than a public release.
 
 ## Repository layout
 
@@ -18,4 +18,4 @@ The migrated character/vitals panel, weapon card, third-person crosshair, blood 
 
 ## Release status
 
-This is a beta source package. The EventCore feed and Open77 snapshot path have had static review only; resource activation, feed delivery, full HUD parity, and key rebinding still need verification on an Open77 server and in game. SIMNC's remaining domain and spawn behavior are future migration work.
+This is a beta development package. The test server has the prior HUD perspective version; this revision simplifies the effect to a subtle tilt on the vitals bars and has not been deployed or reviewed in game yet. Provider delivery, Warden permissions, resource activation, key rebinding, and full HUD parity still need verification. SIMNC's remaining domain and spawn behavior are future migration work.

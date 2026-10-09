@@ -1,6 +1,6 @@
-# RPCore 0.2.3 — HUD and player experience
+# RPCore 0.2.4 development build — HUD and player experience
 
-RPCore owns the player-facing HUD and the server-agnostic RP activity HUD. Its vitals use separate, color-coded glass bars with a slight perspective and lens treatment. Health, stamina, and armor come from Open77. Hunger, thirst, and sanity bars accept values from another server resource; higher sanity severity shifts the bar red and adds Blackwall interference. Level and breath rows remain optional. RPCore also retains its weapon card, crosshair, blood overlay, activity offers, tracker, journal, developer commands, and consumer exports.
+RPCore owns the player-facing HUD and the server-agnostic RP activity HUD. Its compact vitals use separate, color-coded glass bars with a subtle perspective tilt. Health, stamina, and armor come from Open77. Hunger, thirst, and sanity bars accept values from another server resource; higher sanity severity shifts the bar red and adds Blackwall interference. Level and breath rows remain optional. RPCore also retains its weapon card, crosshair, blood overlay, activity offers, tracker, journal, developer commands, and consumer exports.
 
 RPCore's restricted server commands query EventCore's trusted `IsAdmin` API in
 addition to Open77's command permission. Warden continues to own global roles
@@ -35,7 +35,7 @@ RPCore requires EventCore and discovers its runtime/service catalog through docu
 
 ## Important limits
 
-- This package has not been verified in a running Open77 game/server. HUD state delivery, Warden permissions, resource activation, key rebinding, and z-order need in-game verification.
+- This is a development build, not a public release. The test server has the prior HUD perspective version; this revision's simpler tilt on the vitals bars has not been deployed or reviewed in game. HUD state delivery, Warden permissions, resource activation, key rebinding, and z-order still need verification.
 - Only the platform-backed name, life state, and vitals are currently published. The remaining SIMNC-specific fields need replacement providers before all HUD values can match the former system.
 - RPCore activity history remains in memory in this beta. EventCore persistence and durable player inventory/outfits are future integration stages, not part of this package.
 - Defaults are selected for low collision against the supplied SIMNC resource bindings and are fully changeable. F12 is also commonly used by platform software; rebind it if it conflicts on your setup.

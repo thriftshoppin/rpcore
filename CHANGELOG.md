@@ -1,15 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.2.4 — test build
 
-- Shortened the vitals bars, removed meter tick dividers, softened the green glass tint, thickened the rails, and gave the HUD a perspective tilt.
-- Reduced the vitals HUD scale from 78% to 45% and migrated saved vitals-panel scales by the same ratio so prior layout settings do not override the smaller default.
-- Added HUNGER, THIRST, and SANITY bars with a red Blackwall effect that intensifies as cyberpsychosis severity rises; added the `SetSurvivalVitals` and `ClearSurvivalVitals` provider exports.
-- Reduced the vitals HUD footprint and aligned its backing rail with the green accent.
-- Added a per-player layout editor for the vitals and occupation HUD, activity panels, journal, controls, and weapon readout; panels drag independently and save their positions on that client.
-- Replaced the ring-and-card vitals page with a compact, perspective-tilted HUD of individual glass bars; stamina is green and water is blue, with no server logo or footer branding.
-- Added optional level, breath, food, and water values to the HUD adapter; unavailable fields remain hidden rather than displaying fabricated readings.
-- Added a deployment patch to suppress only Freeroam's competing HUD surface while retaining its gameplay and scoreboard.
+- Integrated the player-facing HUD into RPCore and routed server-owned state through EventCore.
+- Added provider handlers so other mods can supply survival values and extend the HUD without modifying RPCore.
 
 ## 0.2.3
 

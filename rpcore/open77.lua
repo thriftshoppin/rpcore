@@ -7,7 +7,7 @@
 -- client-safe state feed.
 
 resource "rpcore"
-version "0.2.3"
+version "0.2.4"
 open77_version ">=0.0.1"
 auto_start true
 dependency "eventcore >=0.4.0"
