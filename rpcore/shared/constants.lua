@@ -18,4 +18,6 @@ RPCore.Net = {
     JOURNAL = "rpcore:journal",  -- client -> server: ask for the journal snapshot
     MAP_REQUEST = "rpcore:map:request", -- client -> server: request saved public locations
     MAP_STATE = "rpcore:map:state",     -- server -> client: saved public locations
+    MAP_CREATE = "rpcore:map:create",   -- admin client -> server: save current position as a location
+    MAP_CREATE_RESULT = "rpcore:map:create:result", -- server -> requesting admin: create result
 }

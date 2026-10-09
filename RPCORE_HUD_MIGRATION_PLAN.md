@@ -8,7 +8,8 @@ RPCore owns the player HUD and roleplay activity interface. The vitals surface u
 
 - EventCore transports versioned, client-safe HUD state and provides approved persistence.
 - RPCore renders platform identity, life state, and vitals, plus provider-backed hunger, thirst, and sanity values.
-- RPCore includes activity offers, tracking, results, a journal, settings, panel layout, weapon display, crosshair, damage overlay, and persistent native map locations.
+- RPCore includes activity offers, tracking, results, a journal, settings, panel layout, weapon display, crosshair, damage overlay, persistent native map locations, and a saved-locations tab in Open77's native City Map.
+- EventCore owns a skinnable chat interface; slash commands continue through Open77's command registry and ACL checks.
 - Warden remains the authority for global roles and command grants. EventCore owns the framework administrator entry point and checks access before exposing tools.
 - Resource-to-resource integrations use their domain owners first and EventCore's approved services and storage where needed.
 
@@ -30,10 +31,12 @@ RPCore owns the player HUD and roleplay activity interface. The vitals surface u
 - Persist authoritative activity transitions and player state through EventCore's trusted storage API.
 - Reconcile restored activity and journal state with the HUD.
 - Verify load order, Warden permissions, input rebinding, map persistence, visual behavior, and event routing on the Open77 test server.
+- Replace the bundled chat UI only after removing `open77_chat` from the server resource list and verifying EventCore chat and command routing in game.
 
 ## Boundaries
 
 - The HUD state feed is implemented; behavior still requires in-game verification for each target server build.
+- Open77 does not expose a supported API to move or extract the native minimap texture into an always-visible HUD panel. RPCore uses the native City Map and game-rendered pins instead of drawing a substitute map.
 - Activity history remains in memory until its persistence work is completed.
 - Inventory, outfits, missions, and health remain authoritative in their domain resources; EventCore is the approved compatibility and persistence layer where direct integration does not fit.
 - Key defaults are configurable test defaults, not requirements for players.

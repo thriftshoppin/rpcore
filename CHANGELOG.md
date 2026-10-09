@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 — native map integration
+
+- Added an RPCore Locations tab to Open77's native City Map, using the game's actual map surface and saved RPCore locations.
+- Added route actions for saved places and `/rpcore.map` to open the native map.
+- Added an admin-only draggable map pin editor; admins can name pins, choose a native symbol, and save the current position.
+- Checked pin creation against EventCore's Warden-backed admin status and stored shared pins through EventCore.
+- Added explicit storage-error feedback when EventCore persistence or database access is unavailable.
+- Added the Open77 `map.read` and `map.control` permissions required by native map tabs.
+
 ## 0.2.5 — map locations
 
 - Added persistent, routable native map locations stored through EventCore.

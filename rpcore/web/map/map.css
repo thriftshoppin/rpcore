@@ -1,0 +1,15 @@
+:root{color-scheme:dark;--green:#54e391;--line:rgba(84,227,145,.24);--panel:rgba(5,12,15,.94);--text:#e8f5ed;--muted:#93a89b;font:16px Bahnschrift,"Segoe UI",sans-serif}
+*{box-sizing:border-box}body{margin:0;padding:28px;color:var(--text);background:radial-gradient(ellipse at 16% 0%,rgba(84,227,145,.08),transparent 50%),#07100e}
+.map-panel{max-width:1000px;margin:0 auto;padding:24px 28px;background:var(--panel);border:1px solid var(--line);box-shadow:0 14px 60px #0008;min-height:100%}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.header-actions{display:flex;gap:8px}button[hidden],section[hidden]{display:none}
+.eyebrow{font:11px Consolas,monospace;letter-spacing:.16em;color:var(--green)}h1{margin:6px 0 0;font-size:26px;font-weight:600;letter-spacing:.04em}
+button{cursor:pointer;border:1px solid var(--line);padding:9px 16px;color:var(--green);background:#102219;font-family:inherit;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}button:hover{background:#173725}
+.note{color:var(--muted);font-size:14px;margin:18px 0}.note strong{color:var(--green)}#status{font:12px Consolas,monospace;color:var(--muted);padding:12px 0}
+ul{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+li{display:flex;align-items:center;justify-content:space-between;gap:18px;border:1px solid var(--line);background:rgba(18,39,27,.64);padding:14px 16px}
+.place{min-width:0}.name{font-weight:600}.coords{color:var(--muted);font:11px Consolas,monospace;margin-top:5px}.route{flex:none}
+.empty{color:var(--muted);padding:20px;border:1px dashed var(--line);grid-column:1/-1}
+.editor{position:fixed;z-index:5;right:28px;top:110px;width:min(360px,calc(100vw - 24px));padding:18px;background:rgba(5,12,15,.97);border:1px solid rgba(84,227,145,.55);box-shadow:0 18px 64px #000b;backdrop-filter:blur(16px);touch-action:pan-y}
+.editor-head{display:flex;align-items:center;justify-content:space-between;cursor:grab;user-select:none;touch-action:none}.editor-head:active{cursor:grabbing}.editor-head h2{margin:6px 0 0;font-size:19px;font-weight:600}.editor-head button{font-size:20px;padding:2px 10px}
+form{display:grid;gap:12px}label{display:grid;gap:6px;color:var(--green);font:11px Consolas,monospace;letter-spacing:.08em;text-transform:uppercase}input,select{width:100%;padding:10px;color:var(--text);background:#091713;border:1px solid var(--line);font:14px "Segoe UI",sans-serif;outline:none}input:focus,select:focus{border-color:var(--green)}.save{width:100%}#editor-status{min-height:18px;color:var(--muted);font:12px Consolas,monospace}

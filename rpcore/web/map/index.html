@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RPCore Locations</title>
+  <link rel="stylesheet" href="map.css">
+  <script src="map.js" defer></script>
+</head>
+<body>
+  <main class="map-panel">
+    <header><div><span class="eyebrow">RPCORE / WORLD DATA</span><h1>Saved locations</h1></div><div class="header-actions"><button id="edit-toggle" type="button" hidden>Edit pins</button><button id="refresh" type="button">Refresh</button></div></header>
+    <p class="note">Locations are server saved. Select a pin to set native GPS routing; open the Map tab to see it in Night City.</p>
+    <div id="status" role="status">Loading server locations…</div>
+    <ul id="locations" aria-label="Saved locations"></ul>
+  </main>
+  <section id="editor" class="editor" aria-label="Map pin editor" hidden>
+    <header id="editor-drag" class="editor-head"><div><span class="eyebrow">ADMIN TOOL</span><h2>Place a map pin</h2></div><button id="editor-close" type="button" aria-label="Close pin editor">×</button></header>
+    <p class="note">Creates a persistent pin at your current position.</p>
+    <form id="pin-form">
+      <label>Pin name<input id="pin-label" maxlength="64" required autocomplete="off" placeholder="Afterlife entrance"></label>
+      <label>Pin ID<input id="pin-id" maxlength="48" required pattern="[a-z0-9][a-z0-9_-]*" autocomplete="off" placeholder="afterlife-entrance"></label>
+      <label>Map symbol<select id="pin-sprite"><option value="objective">Objective</option><option value="tech">Tech</option><option value="danger">Danger</option><option value="vehicle">Vehicle</option></select></label>
+      <button class="save" type="submit">Save current location</button>
+      <div id="editor-status" role="status"></div>
+    </form>
+  </section>
+</body>
+</html>

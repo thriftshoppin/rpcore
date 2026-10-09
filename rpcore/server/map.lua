@@ -7,6 +7,8 @@ local COLLECTION = "map_locations"
 local MAX_LOCATIONS = 64
 local MAX_COORDINATE = 16000
 local lastSnapshotRequest = {}
+local lastCreateRequest = {}
+local ALLOWED_SPRITES = { objective = true, tech = true, danger = true, vehicle = true }
 
 local function validPosition(position)
     if type(position) ~= "table" then return false end
@@ -31,7 +33,7 @@ local function cleanLocation(id, value)
         return nil
     end
     local sprite = type(value.sprite) == "string" and value.sprite or "objective"
-    if #sprite > 40 or not sprite:match("^[a-z0-9_%-]+$") then sprite = "objective" end
+    if not ALLOWED_SPRITES[sprite] then sprite = "objective" end
     local description = type(value.description) == "string" and value.description or ""
     if #description > 192 then description = description:sub(1, 192) end
     return {
@@ -79,13 +81,18 @@ local function copyLocations(locations)
     return copy
 end
 
-local function publish(target)
+local function publish(target, editorAllowed)
     local locations, reason = loadLocations()
     if not locations then
         RPCore.Log.warn("map location load failed: " .. tostring(reason))
+        local snapshot = { locations = {}, error = tostring(reason) }
+        if target and target ~= -1 then snapshot.editorAllowed = editorAllowed == true end
+        TriggerClientEvent(RPCore.Net.MAP_STATE, target or -1, snapshot)
         return false, reason
     end
-    TriggerClientEvent(RPCore.Net.MAP_STATE, target or -1, copyLocations(locations))
+    local snapshot = { locations = copyLocations(locations) }
+    if target and target ~= -1 then snapshot.editorAllowed = editorAllowed == true end
+    TriggerClientEvent(RPCore.Net.MAP_STATE, target or -1, snapshot)
     return true, locations
 end
 
@@ -112,7 +119,7 @@ function RPCore.Map.AddLocation(id, label, position, options)
     if not existing and #locations >= MAX_LOCATIONS then return false, "map_location_limit_reached" end
 
     local sprite = type(options.sprite) == "string" and options.sprite or "objective"
-    if #sprite > 40 or not sprite:match("^[a-z0-9_%-]+$") then return false, "invalid_sprite" end
+    if not ALLOWED_SPRITES[sprite] then return false, "unsupported_sprite" end
     local description = type(options.description) == "string" and options.description or ""
     if #description > 192 then return false, "description_too_long" end
     local value = {
@@ -150,11 +157,62 @@ RegisterNetEvent(RPCore.Net.MAP_REQUEST, function()
     if lastSnapshotRequest[player] and now - lastSnapshotRequest[player] < 3000 then return end
     lastSnapshotRequest[player] = now
     RPCore.Async("RPCore map snapshot", function()
+        local allowed = false
+        if RPCore.EventCore and RPCore.EventCore.IsAdmin then
+            allowed = RPCore.EventCore.IsAdmin(player) == true
+        end
         -- Storage may still be opening immediately after server startup.
         for attempt = 1, 5 do
-            local ok = publish(player)
+            local ok = publish(player, allowed)
             if ok then return end
             Wait(1000)
         end
     end)
+end)
+
+RegisterNetEvent(RPCore.Net.MAP_CREATE, function(payload)
+    local player = tonumber(source)
+    if not player or player < 1 or type(payload) ~= "table" then return end
+    local now = RPCore.Now()
+    if lastCreateRequest[player] and now - lastCreateRequest[player] < 2000 then
+        TriggerClientEvent(RPCore.Net.MAP_CREATE_RESULT, player, { ok = false, error = "Please wait before creating another pin." })
+        return
+    end
+    lastCreateRequest[player] = now
+    RPCore.Async("RPCore map pin authorization", function()
+        local allowed, authReason = false, "admin_required"
+        if RPCore.EventCore and RPCore.EventCore.IsAdmin then
+            allowed, authReason = RPCore.EventCore.IsAdmin(player)
+        end
+        if allowed ~= true then
+            TriggerClientEvent(RPCore.Net.MAP_CREATE_RESULT, player, { ok = false, error = tostring(authReason or "admin_required") })
+            return
+        end
+        local id = type(payload.id) == "string" and payload.id or ""
+        local label = type(payload.label) == "string" and payload.label or ""
+        local sprite = type(payload.sprite) == "string" and payload.sprite or "objective"
+        if not ALLOWED_SPRITES[sprite] then
+            TriggerClientEvent(RPCore.Net.MAP_CREATE_RESULT, player, { ok = false, error = "Choose a supported map symbol." })
+            return
+        end
+        local context, contextError = RPCore.EventCore.GetPlayerContext(player)
+        if type(context) ~= "table" or type(context.position) ~= "table" then
+            TriggerClientEvent(RPCore.Net.MAP_CREATE_RESULT, player, { ok = false, error = tostring(contextError or "Current player position is unavailable.") })
+            return
+        end
+        local ok, locationId, outcome = RPCore.Map.AddLocation(id, label, context.position, { sprite = sprite })
+        local errorMessage = nil
+        if not ok then errorMessage = tostring(locationId) end
+        TriggerClientEvent(RPCore.Net.MAP_CREATE_RESULT, player, {
+            ok = ok == true,
+            id = ok and locationId or nil,
+            outcome = ok and outcome or nil,
+            error = errorMessage,
+        })
+    end)
+end)
+
+AddEventHandler("playerDropped", function()
+    local player = tonumber(source)
+    if player then lastSnapshotRequest[player], lastCreateRequest[player] = nil, nil end
 end)

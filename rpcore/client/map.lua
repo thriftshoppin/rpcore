@@ -1,8 +1,14 @@
--- Render the server's persistent public locations as resource-owned native
--- map pins. The native minimap/map remains the platform's own interface.
+-- RPCore's location pins use the game's own map projection and native blip
+-- renderer. A Locations tab is added to the native City Map; it lists saved
+-- places and can route to one without trying to redraw the game's map texture.
 RPCore = RPCore or {}
 
 local owned = {}
+local locations = {}
+local mapError
+local editorAllowed = false
+local mapPage
+local mapTab
 local MAX_LOCATIONS = 64
 
 local function validPosition(position)
@@ -10,56 +16,126 @@ local function validPosition(position)
     for _, axis in ipairs({ "x", "y", "z" }) do
         local value = tonumber(position[axis])
         if not value or value ~= value or value == math.huge or value == -math.huge
-            or math.abs(value) > 16000 then
-            return false
-        end
+            or math.abs(value) > 16000 then return false end
     end
     return true
 end
 
 local function clearOwned()
-    if not (Open77 and Open77.blips and type(Open77.blips.remove) == "function") then return end
-    for _, id in pairs(owned) do Open77.blips.remove(id) end
+    if Open77 and Open77.blips and type(Open77.blips.remove) == "function" then
+        for _, id in pairs(owned) do Open77.blips.remove(id) end
+    end
     owned = {}
 end
 
-local function applyLocations(locations)
-    if type(locations) ~= "table" then return end
+local function updatePage()
+    if mapPage then mapPage:send("rpcore:map:locations", { locations = locations, error = mapError, editorAllowed = editorAllowed }) end
+end
+
+local function applyLocations(snapshot)
+    if type(snapshot) ~= "table" then return end
+    mapError = type(snapshot.error) == "string" and snapshot.error or nil
+    if type(snapshot.editorAllowed) == "boolean" then editorAllowed = snapshot.editorAllowed end
+    local incoming = type(snapshot.locations) == "table" and snapshot.locations or {}
+    locations = {}
+    clearOwned()
     if not (Open77 and Open77.blips and type(Open77.blips.create) == "function") then
         print("[rpcore] native map pin API is unavailable on this client")
+        updatePage()
         return
     end
-    clearOwned()
-    local count = 0
-    for _, location in ipairs(locations) do
-        if count >= MAX_LOCATIONS then break end
+
+    for _, location in ipairs(incoming) do
+        if #locations >= MAX_LOCATIONS then break end
         if type(location) == "table" and type(location.id) == "string"
             and type(location.label) == "string" and #location.label > 0 and #location.label <= 64
             and validPosition(location.position) then
-            local options = {
-                position = {
-                    x = tonumber(location.position.x),
-                    y = tonumber(location.position.y),
-                    z = tonumber(location.position.z),
-                },
-                sprite = type(location.sprite) == "string" and location.sprite or "objective",
-                title = location.label,
+            local item = {
+                id = location.id,
                 label = location.label,
                 description = type(location.description) == "string" and location.description or "",
-                routable = true,
+                position = { x = tonumber(location.position.x), y = tonumber(location.position.y), z = tonumber(location.position.z) },
             }
-            local id, reason = Open77.blips.create(options)
+            local id, reason = Open77.blips.create({
+                position = item.position,
+                sprite = type(location.sprite) == "string" and location.sprite or "objective",
+                title = item.label,
+                label = item.label,
+                description = item.description,
+                routable = true,
+            })
             if id then
-                owned[location.id] = id
-                count = count + 1
+                owned[item.id] = id
+                locations[#locations + 1] = item
             else
-                print("[rpcore] map pin refused for " .. location.id .. ": " .. tostring(reason))
+                print("[rpcore] map pin refused for " .. item.id .. ": " .. tostring(reason))
             end
         end
     end
+    updatePage()
 end
 
+local function registerMapTab()
+    if not (Open77 and Open77.map and type(Open77.map.addTab) == "function") then
+        print("[rpcore] native map tabs unavailable; persistent locations remain on the native map as pins")
+        return
+    end
+    local tab, pageOrReason = Open77.map.addTab({
+        id = "rpcore-locations",
+        label = "Locations",
+        url = "web/map/index.html",
+        order = 20,
+    })
+    if not tab then
+        print("[rpcore] Locations map tab unavailable: " .. tostring(pageOrReason))
+        return
+    end
+    mapTab, mapPage = tab, pageOrReason
+    mapPage:on("rpcore:map:refresh", function()
+        TriggerServerEvent(RPCore.Net.MAP_REQUEST)
+        updatePage()
+    end)
+    mapPage:on("rpcore:map:track", function(payload)
+        if type(payload) ~= "table" or type(payload.id) ~= "string" then return end
+        local id = owned[payload.id]
+        if id and Open77.blips and type(Open77.blips.track) == "function" then
+            local ok, reason = Open77.blips.track(id)
+            if not ok then print("[rpcore] could not route to map location: " .. tostring(reason)) end
+        end
+    end)
+    mapPage:on("rpcore:map:create", function(payload)
+        if not editorAllowed or type(payload) ~= "table" then return end
+        TriggerServerEvent(RPCore.Net.MAP_CREATE, {
+            id = tostring(payload.id or ""),
+            label = tostring(payload.label or ""),
+            sprite = tostring(payload.sprite or "objective"),
+        })
+    end)
+    AddEventHandler("open77:map:tabEntered", function(event)
+        if event.id == mapTab then
+            TriggerServerEvent(RPCore.Net.MAP_REQUEST)
+            updatePage()
+        end
+    end)
+    AddEventHandler("open77:map:tabRemoved", function(event)
+        if event.id == mapTab then mapPage, mapTab = nil, nil end
+    end)
+    mapPage:send("rpcore:map:locations", { locations = locations, error = mapError, editorAllowed = editorAllowed })
+end
+
+RegisterCommand("rpcore.map", function()
+    if Open77 and Open77.map and type(Open77.map.open) == "function" then
+        local ok, reason = Open77.map.open()
+        if not ok then print("[rpcore] could not open native map: " .. tostring(reason)) end
+    else
+        print("[rpcore] native map screen API is unavailable on this client")
+    end
+end, false, { help = "Open the native map and RPCore saved locations" })
+
 RegisterNetEvent(RPCore.Net.MAP_STATE, applyLocations)
+RegisterNetEvent(RPCore.Net.MAP_CREATE_RESULT, function(result)
+    if mapPage and type(result) == "table" then mapPage:send("rpcore:map:create:result", result) end
+end)
 
 AddEventHandler("onClientResourceStart", function(name)
     if name ~= GetCurrentResourceName() then return end
@@ -69,6 +145,7 @@ AddEventHandler("onClientResourceStart", function(name)
             print("[rpcore] native minimap is not visible; check HUD claims and ui.vanilla.hud permission")
         end
     end
+    registerMapTab()
     CreateThread(function()
         Wait(500)
         TriggerServerEvent(RPCore.Net.MAP_REQUEST)
@@ -76,5 +153,10 @@ AddEventHandler("onClientResourceStart", function(name)
 end)
 
 AddEventHandler("onClientResourceStop", function(name)
-    if name == GetCurrentResourceName() then clearOwned() end
+    if name ~= GetCurrentResourceName() then return end
+    clearOwned()
+    if mapTab and Open77 and Open77.map and type(Open77.map.removeTab) == "function" then
+        Open77.map.removeTab(mapTab)
+    end
+    mapPage, mapTab = nil, nil
 end)
