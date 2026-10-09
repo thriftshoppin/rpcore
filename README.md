@@ -2,7 +2,7 @@
 
 **RPCore 0.2.4 development build — EventCore-ready roleplay HUD and activity framework for Open77.**
 
-This repository contains the 0.2.4 HUD iteration. RPCore is the home for the SIM: Night City player-facing HUD and RP activity interface; EventCore owns the state transport contract. The test-bench build has been visually reviewed, but this remains a development build rather than a public release.
+RPCore is the home for the Open77 player-facing HUD and RP activity interface; EventCore owns the state transport contract. The project is intended to remain open source and free for anyone to use and modify. This is a development build; publication terms and licensing will be stated with the public release.
 
 ## Repository layout
 
@@ -12,10 +12,10 @@ This repository contains the 0.2.4 HUD iteration. RPCore is the home for the SIM
 
 ## Install
 
-Copy the `rpcore/` folder into the server's `resources/` directory. Install EventCore 0.3.1 or newer, then load `eventcore` before `rpcore`. Remove `simnc_hud` after enabling the migrated resource to avoid duplicate HUDs. RPCore no longer calls `simnc_core`; remaining SIMNC-owned features are being migrated in later steps. See [`rpcore/README.md`](rpcore/README.md) and [`rpcore/install/server-load-order.jsonc`](rpcore/install/server-load-order.jsonc).
+Copy the `rpcore/` folder into the server's `resources/` directory. Install EventCore 0.5.0 or newer, then load `eventcore` before `rpcore`. Add `rpcore` to EventCore `server/whitelist.lua`. Remove any competing HUD resource to avoid duplicate widgets. See [`rpcore/README.md`](rpcore/README.md) and [`rpcore/install/server-load-order.jsonc`](rpcore/install/server-load-order.jsonc) for details.
 
-The migrated character/vitals panel, weapon card, third-person crosshair, blood overlay, and RPCore activity UI are included. This step publishes platform identity/life/vitals through EventCore; money, job, needs, humanity, weather, and the spawn system remain to be migrated. The admin panel remains in its existing resource pending a separate security-reviewed migration.
+The player HUD, weapon card, third-person crosshair, blood overlay, RPCore activity UI, and persistent native map locations are included. Platform identity, life state, and vitals are published through EventCore. Providers for economy, jobs, needs, humanity, weather, and spawn behavior remain future work. EventCore owns the admin entry point; Warden remains authoritative for global roles and command grants.
 
 ## Release status
 
-This is a beta development package. The test server has the prior HUD perspective version; this revision simplifies the effect to a subtle tilt on the vitals bars and has not been deployed or reviewed in game yet. Provider delivery, Warden permissions, resource activation, key rebinding, and full HUD parity still need verification. SIMNC's remaining domain and spawn behavior are future migration work.
+This is a development package. Map persistence, provider delivery, Warden permissions, resource activation, key rebinding, and HUD behavior need verification in game before release.

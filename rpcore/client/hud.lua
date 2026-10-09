@@ -1,9 +1,9 @@
--- simnc_hud/client/main.lua  (v3, OPX)
+-- RPCore player-facing HUD renderer.
 --
 --   top-right    -> character name, eddies, bank, job, weather + clock
 --   bottom-left  -> health, armor, stamina, humanity, food / water / energy
---   bottom-mid   -> SIMNC logo
---   bottom-right -> weapon card (client/weapon.lua, web/weapon.html)
+--   bottom-mid   -> reserved footer area
+--   bottom-right -> weapon card (client/weapon.lua, web/hud/weapon.html)
 --
 -- RPCore owns this player-facing HUD. It receives server-owned snapshots via
 -- EventCore and renders them without reading another resource's client state.
@@ -50,7 +50,7 @@ local function sendStats(force)
         math.floor(tonumber(payload.health) or 0), math.floor(tonumber(payload.healthMax) or 0),
         math.floor(tonumber(payload.armor) or 0), math.floor(tonumber(payload.stamina) or -1),
         math.floor(tonumber(payload.staminaMax) or -1) }, "|") or nil
-    send("simnc:stats", payload, signature)
+    send("rpcore:hud:stats", payload, signature)
 end
 
 RPCore.Hud.State = function() return currentState end
@@ -65,7 +65,7 @@ local function apply(state, force)
         -- The SURFACE stays up for the whole session; the page hides its own
         -- content. Toggling a surface with show()/hide() -- and creating it
         -- hidden -- is the path OPX warns loses the race and never paints.
-        if page then page:send("simnc:visible", { shown = shown }) end
+        if page then page:send("rpcore:hud:visible", { shown = shown }) end
         if shown then force = true end
     end
     if not shown then return end
@@ -88,24 +88,24 @@ local function apply(state, force)
             sanityMax = survival.sanityMax or state.sanityMax,
             energy = needs.energy,
         }
-        send("simnc:rp", rp, table.concat({ tostring(rp.name), tostring(rp.cash), tostring(rp.bank), tostring(rp.job),
+        send("rpcore:hud:roleplay", rp, table.concat({ tostring(rp.name), tostring(rp.cash), tostring(rp.bank), tostring(rp.job),
             tostring(rp.jobGrade), tostring(rp.onDuty), tostring(rp.level), tostring(rp.breath),
             tostring(rp.breathMax), tostring(rp.foodMax), tostring(rp.waterMax),
             math.floor(tonumber(rp.food) or -1), math.floor(tonumber(rp.water) or -1),
             math.floor(tonumber(rp.energy) or -1), math.floor(tonumber(rp.sanity) or -1),
             math.floor(tonumber(rp.sanityMax) or -1) }, "|"))
     elseif state.name then
-        send("simnc:character", { name = state.name }, tostring(state.name))
+        send("rpcore:hud:character", { name = state.name }, tostring(state.name))
     end
 
     local h = state.humanity
     if type(h) == "table" and tonumber(h.current) and tonumber(h.ceiling) then
-        send("simnc:humanity", { current = h.current, ceiling = h.ceiling }, h.current .. "/" .. h.ceiling)
+        send("rpcore:hud:humanity", { current = h.current, ceiling = h.ceiling }, h.current .. "/" .. h.ceiling)
     end
 
     local w = state.weather
     if type(w) == "table" then
-        send("simnc:weather", { weather = w.weather, hour = w.hour, minute = w.minute },
+        send("rpcore:hud:weather", { weather = w.weather, hour = w.hour, minute = w.minute },
             tostring(w.weather) .. tostring(w.hour) .. ":" .. tostring(w.minute))
     end
     sendStats(force)
@@ -131,14 +131,14 @@ end)
 
 local function createPage()
     local surface, err = Open77.webui.create({
-        entry = "web/simnc/index.html",
+        entry = "web/hud/index.html",
         layer = "hud",
         zIndex = 800, -- above the OPX HUD (700), below the crosshair (850)
         transparent = true,
         visible = true,
     })
     if not surface then
-        print("[rpcore] SIMNC HUD page failed: " .. tostring(err))
+        print("[rpcore] RPCore HUD page failed: " .. tostring(err))
         return
     end
     page = surface
@@ -156,8 +156,8 @@ local function createPage()
     end
 
     -- The page asks for its first frame once its listeners exist.
-    page:on("simnc:ready", function()
-        print("[rpcore] SIMNC HUD WebUI is ready")
+    page:on("rpcore:hud:ready", function()
+        print("[rpcore] RPCore HUD WebUI is ready")
         lastShown = nil
         refreshState(true)
     end)
@@ -165,7 +165,7 @@ local function createPage()
     CreateThread(function()
         Wait(5000)
         if page == surface and not pageReady then
-            print("[rpcore] SIMNC HUD WebUI did not report ready; check the page and web_files")
+            print("[rpcore] RPCore HUD WebUI did not report ready; check the page and web_files")
         end
     end)
 

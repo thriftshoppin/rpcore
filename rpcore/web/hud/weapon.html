@@ -4,16 +4,14 @@
 <meta charset="utf-8">
 <title>RPCore Weapon</title>
 <style>
-  /* SIMNC weapon readout: TEXT ONLY. No picture, no badges -- the name, the
-     state and the rounds, set like an instrument and right-aligned to the
+  /* RPCore weapon readout: name, state, and rounds, right-aligned to the
      screen edge. A thin rule on the outer edge carries the state colour:
      amber holstered, green drawn, red when the magazine runs low. */
   @font-face{ font-family:Rajdhani; font-weight:700; src:url(fonts/rajdhani-latin-700-normal.woff2) format('woff2'); }
   @font-face{ font-family:'IBM Plex Mono'; font-weight:700; src:url(fonts/ibm-plex-mono-latin-700-normal.woff2) format('woff2'); }
   *{ box-sizing:border-box; margin:0; padding:0; }
   html,body{ background:transparent; overflow:hidden; width:100%; height:100%; }
-  /* SIMNC 2026-10-05: depth measured from the screen centre, like the OPX HUD
-     and the inventory, so the 7deg lean actually reads as 3D. */
+  /* Perspective depth is measured from screen center so the lean reads as 3D. */
   body{ perspective:900px; perspective-origin:50% 50%; }
   body{ font-family:Rajdhani,'Bahnschrift Condensed','Arial Narrow',sans-serif; color:#f2f6f8; }
   :root{ --drawn:#4ade80; --holstered:#ffb020; --low:#ff5c5c; --muted:#b9c4ca;

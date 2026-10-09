@@ -1,15 +1,11 @@
--- SIMNC: BLOOD ON THE SCREEN when a blade cuts you (sent by simnc_core's
--- roleplay hit messages as 'simnc:blood'). Drawn on its own HUD surface at the
--- BOTTOM of the stack (zIndex 10): the HUD (600), OPX's UI and chat (700), the
--- crosshair (850) and every menu draw over it. The page only ever paints the
--- screen edges, away from the HUD corners and the aim point, and every splatter
--- fades out on its own. Made on the first cut, not at load.
+-- Blade-hit overlay rendered on its own low-priority HUD surface. Menus, the HUD, and the crosshair draw over it.
+-- The owning combat resource sends validated hit details through RPCore's client event.
 local page, ready, queued = nil, false, {}
 
 local function create()
     if page then return end
     local surface, err = Open77.webui.create({
-        entry = "web/simnc/blood.html",
+        entry = "web/hud/blood.html",
         layer = "hud",
         zIndex = 10,
         fps = 30,
@@ -28,7 +24,7 @@ local function create()
     end)
 end
 
-RegisterNetEvent("simnc:blood", function(hit)
+RegisterNetEvent("rpcore:combat:blood", function(hit)
     if type(hit) ~= "table" then return end
     local clean = { zone = tostring(hit.zone or "body"), side = tostring(hit.side or ""), heavy = hit.heavy == true }
     create()

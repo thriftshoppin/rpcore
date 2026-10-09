@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  // SIMNC weapon readout, text only: name, class, drawn/holstered, rounds.
+  // RPCore weapon readout, text only: name, class, drawn/holstered, rounds.
   const body = document.body;
   const $ = id => document.getElementById(id);
   const card = $("weapon-hud");
@@ -14,7 +14,7 @@
     body.dataset.weapon = String(equipped);
     if (!equipped) return;
 
-    const W = window.SimncWeapons;
+    const W = window.RPCoreWeapons;
     const cls = W ? W.classify(w) : "pistol";
     const melee = W ? W.isMelee(cls) : false;
     const drawn = w.drawn === true;
@@ -34,9 +34,9 @@
   }
 
   if (window.Open77 && typeof Open77.on === "function") {
-    Open77.on("simnc:weapon", render);
+    Open77.on("rpcore:weapon", render);
     if (typeof Open77.ready === "function") Open77.ready();
-    Open77.emit("simnc:weapon:ready", {});
+    Open77.emit("rpcore:weapon:ready", {});
   } else {
     // Browser preview: weapon.html?preview=Items.Base_Ajax&mag=6&cap=30&res=240[&holstered]
     const q = new URLSearchParams(location.search);

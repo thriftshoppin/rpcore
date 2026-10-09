@@ -1,13 +1,5 @@
--- SIMNC (owner, 2026-10-05): "use what open77 gave us as the normal crosshair,
--- specifically in third person".
---
--- Open77's reticle (the open77_reticle client bootstrap, not ours to change)
--- only draws in third person WHILE AIMING, so a third-person player with a
--- weapon out had no crosshair at all -- and with a katana, none even when
--- raised. This draws THE SAME reticle (same cyan ticks, same dark rim) as the
--- normal third-person crosshair: whenever a weapon is out, tighter while aimed
--- in. The moment open77_reticle draws its own, this one steps aside, so the
--- two never stack. First person is untouched (the vanilla crosshair).
+-- RPCore third-person crosshair using Open77's native drawing APIs.
+
 local page, ready, lastShown, lastAim
 
 local function thirdPerson(state)
@@ -52,7 +44,7 @@ AddEventHandler('onClientResourceStart', function(name)
 	if name ~= GetCurrentResourceName() then return end
 	local reason
 	page, reason = Open77.webui.create({
-		entry = 'web/simnc/crosshair.html', layer = 'hud', width = 1920, height = 1080,
+		entry = 'web/hud/crosshair.html', layer = 'hud', width = 1920, height = 1080,
 		fps = 30, zIndex = 850, transparent = true, visible = true,
 	})
 	if not page then

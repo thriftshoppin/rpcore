@@ -7,10 +7,10 @@
 -- client-safe state feed.
 
 resource "rpcore"
-version "0.2.4"
+version "0.2.5"
 open77_version ">=0.0.1"
 auto_start true
-dependency "eventcore >=0.4.0"
+dependency "eventcore >=0.5.0"
 -- RPCore owns persistent HUD WebUI surfaces; recreate them after a reconnect
 -- rather than trying to reuse stale CEF pages across a resource reload.
 reload_policy "reconnect"
@@ -29,6 +29,7 @@ permissions {
     "players.read",
     "player.aim.read",
     "ui.vanilla.hud",
+    "ui.vanilla.map",
 }
 
 shared_script "shared/constants.lua"
@@ -42,6 +43,7 @@ server_script "server/objectives.lua"
 server_script "server/rewards.lua"
 server_script "server/presentation.lua"
 server_script "server/net.lua"
+server_script "server/map.lua"
 server_script "server/commands.lua"
 server_script "server/exports.lua"
 server_script "server/demo.lua"
@@ -49,11 +51,12 @@ server_script "server/boot.lua"
 server_script "server/hud_state.lua"
 
 client_script "client/main.lua"
+client_script "client/map.lua"
 client_script "client/layout.lua"
 client_script "client/input.lua"
 client_script "client/hud.lua"
-client_script "client/simnc_weapon.lua"
-client_script "client/simnc_crosshair.lua"
-client_script "client/simnc_blood.lua"
+client_script "client/weapon.lua"
+client_script "client/crosshair.lua"
+client_script "client/blood.lua"
 
 web_files { "web/**" }

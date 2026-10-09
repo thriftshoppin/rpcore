@@ -16,4 +16,6 @@ RPCore.Net = {
     RESPOND = "rpcore:respond",  -- client -> server: accept / decline an offer
     ACTION  = "rpcore:action",   -- client -> server: a whitelisted player action
     JOURNAL = "rpcore:journal",  -- client -> server: ask for the journal snapshot
+    MAP_REQUEST = "rpcore:map:request", -- client -> server: request saved public locations
+    MAP_STATE = "rpcore:map:state",     -- server -> client: saved public locations
 }

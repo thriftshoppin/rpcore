@@ -80,3 +80,38 @@ RegisterCommand("rpcore.cancel", adminCommand("rpcore.cancel", function(source, 
     RPCore.Instances.Cancel(inst, "cancelled_by_admin")
     reply(source, "RPCore: cancelled " .. inst.id)
 end), true)
+
+RegisterCommand("rpcore.map.add", adminCommand("rpcore.map.add", function(source, args, raw)
+    local id = type(args[1]) == "string" and args[1] or ""
+    local label = table.concat(args, " ", 2)
+    if source < 1 or id == "" or label == "" then
+        return reply(source, "usage: /rpcore.map.add <id> <label...> (saves your current position)", false, raw)
+    end
+    local context, contextError = RPCore.EventCore.GetPlayerContext(source)
+    if type(context) ~= "table" or type(context.position) ~= "table" then
+        return reply(source, "RPCore map location not saved: " .. tostring(contextError or "player_position_unavailable"), false, raw)
+    end
+    local ok, savedId, outcome = RPCore.Map.AddLocation(id, label, context.position)
+    if not ok then return reply(source, "RPCore map location not saved: " .. tostring(savedId), false, raw) end
+    reply(source, ("RPCore map location %s: %s (%s)"):format(outcome, label, savedId), true, raw)
+end), true)
+
+RegisterCommand("rpcore.map.remove", adminCommand("rpcore.map.remove", function(source, args, raw)
+    local id = args[1]
+    if type(id) ~= "string" or id == "" then
+        return reply(source, "usage: /rpcore.map.remove <id>", false, raw)
+    end
+    local ok, reason = RPCore.Map.RemoveLocation(id)
+    if not ok then return reply(source, "RPCore map location not removed: " .. tostring(reason), false, raw) end
+    reply(source, "RPCore map location removed: " .. id, true, raw)
+end), true)
+
+RegisterCommand("rpcore.map.list", adminCommand("rpcore.map.list", function(source, _args, raw)
+    local locations, reason = RPCore.Map.ListLocations()
+    if not locations then return reply(source, "RPCore map locations unavailable: " .. tostring(reason), false, raw) end
+    reply(source, ("RPCore map: %d saved location(s)"):format(#locations), true, raw)
+    for _, location in ipairs(locations) do
+        reply(source, ("  %s — %s (%.1f, %.1f, %.1f)"):format(location.id, location.label,
+            location.position.x, location.position.y, location.position.z), true, raw)
+    end
+end), true)

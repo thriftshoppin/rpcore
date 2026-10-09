@@ -1,4 +1,4 @@
--- simnc_hud/client/weapon.lua
+-- RPCore weapon card renderer.
 -- The weapon card, bottom-right: class icon, name, drawn / holstered, and the
 -- magazine / reserve counter. Moved here from freeroam (which OPX replaces).
 -- Reads the host's verified weapon snapshot; OPX's inventory decides what the
@@ -36,7 +36,7 @@ local function push(force)
         tostring(w.slot), tostring(w.magazine), tostring(w.capacity), tostring(w.reserve), tostring(w.ammoKnown) }, "|")
     if not force and sig == lastSig then return end
     lastSig = sig
-    card:send("simnc:weapon", payload)
+    card:send("rpcore:weapon", payload)
 end
 
 local function request()
@@ -85,7 +85,7 @@ end)
 
 local function create()
     local surface, err = Open77.webui.create({
-        entry = "web/simnc/weapon.html",
+        entry = "web/hud/weapon.html",
         layer = "hud",
         zIndex = 600, -- above the blood layer (10)
         transparent = true,
@@ -97,7 +97,7 @@ local function create()
     end
     card = surface
     if RPCore.Layout then RPCore.Layout.RegisterSurface("weapon", card, { "weapon" }) end
-    card:on("simnc:weapon:ready", function() ready = true push(true) end)
+    card:on("rpcore:weapon:ready", function() ready = true push(true) end)
     CreateThread(function()
         while card ~= nil do
             if shown() then request() end

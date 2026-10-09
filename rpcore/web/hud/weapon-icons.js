@@ -1,6 +1,6 @@
-// SIMNC weapon helpers (names, classes). Formerly also photoreal 3D renders (original SIMNC models, rendered in Blender),
-// one per weapon class, shipped as web/weapons/<class>.webp (transparent, 3/4 tilt).
-// Exposes window.SimncWeapons = { icon(cls), classify(weapon), displayName(weapon), CLASS_LABEL, isMelee }.
+// RPCore weapon helpers (names, classes). Weapon icon helpers classify and label supported weapon types.
+// Icons are resolved from the RPCore web asset set.
+// Exposes window.RPCoreWeapons = { icon(cls), classify(weapon), displayName(weapon), CLASS_LABEL, isMelee }.
 (() => {
   "use strict";
 
@@ -78,7 +78,7 @@
     return src ? src.replace(/\b\w/g, c => c.toUpperCase()) : "Weapon";
   }
 
-  window.SimncWeapons = {
+  window.RPCoreWeapons = {
     icon: cls => `<img src="weapons/${CLASSES.includes(cls) ? cls : "pistol"}.webp" alt="" draggable="false">`,
     classify, displayName, CLASS_LABEL, isMelee: cls => MELEE.has(cls), classes: CLASSES.slice(),
   };

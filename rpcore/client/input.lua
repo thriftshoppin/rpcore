@@ -1,5 +1,5 @@
 -- Rebindable RPCore controls. Defaults are reserved for testing and checked
--- against the supplied SIM-Night-City resource tree; players may change every
+-- against the supplied Open77 resource tree; players may change every
 -- action here or through Open77's persistent KEY BINDINGS registry.
 RPCore = RPCore or {}
 RPCore.Client = RPCore.Client or {}
