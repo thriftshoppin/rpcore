@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Reduced the vitals HUD scale from 78% to 45% and migrated saved vitals-panel scales by the same ratio so prior layout settings do not override the smaller default.
 - Added HUNGER, THIRST, and SANITY bars with a red Blackwall effect that intensifies as cyberpsychosis severity rises; added the `SetSurvivalVitals` and `ClearSurvivalVitals` provider exports.
 - Reduced the vitals HUD footprint and aligned its backing rail with the green accent.
 - Added a per-player layout editor for the vitals and occupation HUD, activity panels, journal, controls, and weapon readout; panels drag independently and save their positions on that client.

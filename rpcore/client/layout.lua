@@ -4,19 +4,34 @@ RPCore.Layout = RPCore.Layout or {}
 
 local Layout = RPCore.Layout
 local KEY = "rpcore:layout:v1"
+local SCALE_REVISION = 2
 local surfaces = {}
 local positions = {}
 local enabled = false
 local focused = nil
+local persist
 
 local function load()
     local raw = Open77.kvp.get(KEY)
     if type(raw) ~= "string" or raw == "" then return end
     local decoded = Open77.json.decode(raw)
-    if type(decoded) == "table" then positions = decoded end
+    if type(decoded) ~= "table" then return end
+    local revision = tonumber(decoded.scaleRevision) or 0
+    if revision < SCALE_REVISION then
+        local vitals = type(decoded.vitals) == "table" and decoded.vitals or nil
+        local panel = vitals and type(vitals.vitals) == "table" and vitals.vitals or nil
+        if panel and tonumber(panel.scale) then
+            panel.scale = math.max(0.35, math.min(1, tonumber(panel.scale) * 0.58))
+        end
+        decoded.scaleRevision = SCALE_REVISION
+        positions = decoded
+        persist()
+        return
+    end
+    positions = decoded
 end
 
-local function persist()
+persist = function()
     local encoded = Open77.json.encode(positions)
     if type(encoded) == "string" then
         local ok, reason = Open77.kvp.set(KEY, encoded)
@@ -71,9 +86,9 @@ function Layout.RegisterSurface(id, page, elementIds)
         x, y = math.max(0, math.min(1, x)), math.max(0, math.min(1, y))
         positions[id] = positions[id] or {}
         local previous = positions[id][payload.element] or {}
-        local scale = tonumber(payload.scale) or tonumber(previous.scale) or 0.78
-        if scale ~= scale then scale = 0.78 end
-        scale = math.max(0.6, math.min(1, scale))
+        local scale = tonumber(payload.scale) or tonumber(previous.scale) or 0.45
+        if scale ~= scale then scale = 0.45 end
+        scale = math.max(0.35, math.min(1, scale))
         positions[id][payload.element] = { x = x, y = y, scale = scale }
         persist()
         publishAll()

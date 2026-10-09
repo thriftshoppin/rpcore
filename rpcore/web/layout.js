@@ -36,7 +36,7 @@
     const css = document.createElement('style'); css.textContent = styles; document.head.appendChild(css);
     const tools = document.createElement('nav'); tools.className = 'rpcore-layout-tools';
     tools.setAttribute('aria-label', 'RPCore HUD layout editor');
-    tools.innerHTML = '<span>DRAG</span><button type="button" data-action="surface" data-value="vitals">Vitals</button><button type="button" data-action="surface" data-value="activities">Activities</button><button type="button" data-action="surface" data-value="weapon">Weapon</button><button type="button" data-action="size" data-delta="-0.05" aria-label="Smaller panel">−</button><output class="rpcore-layout-scale">85%</output><button type="button" data-action="size" data-delta="0.05" aria-label="Larger panel">+</button><button type="button" data-action="reset">Reset</button><button type="button" data-action="close">Done</button>';
+    tools.innerHTML = '<span>DRAG</span><button type="button" data-action="surface" data-value="vitals">Vitals</button><button type="button" data-action="surface" data-value="activities">Activities</button><button type="button" data-action="surface" data-value="weapon">Weapon</button><button type="button" data-action="size" data-delta="-0.05" aria-label="Smaller panel">−</button><output class="rpcore-layout-scale">45%</output><button type="button" data-action="size" data-delta="0.05" aria-label="Larger panel">+</button><button type="button" data-action="reset">Reset</button><button type="button" data-action="close">Done</button>';
     document.body.appendChild(tools);
 
     for (const id of ids) {
@@ -49,6 +49,11 @@
       element.appendChild(placeholder);
     }
 
+    function defaultScale(element) { return element?.dataset.layoutId === 'vitals' ? .45 : .78; }
+    function panelScale(element) {
+      const scale = Number(getComputedStyle(element).getPropertyValue('--layout-scale'));
+      return Number.isFinite(scale) && scale > 0 ? scale : defaultScale(element);
+    }
     function place(element, point) {
       if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) return;
       element.style.position = 'fixed';
@@ -56,7 +61,7 @@
       element.style.top = `${point.y * 100}vh`;
       element.style.right = 'auto'; element.style.bottom = 'auto';
       element.style.transformOrigin = 'top left';
-      const scale = Number.isFinite(Number(point.scale)) ? Math.max(.6, Math.min(1, Number(point.scale))) : .78;
+      const scale = Number.isFinite(Number(point.scale)) ? Math.max(.35, Math.min(1, Number(point.scale))) : defaultScale(element);
       element.style.setProperty('--layout-scale', String(scale));
     }
     let currentState = null;
@@ -64,7 +69,7 @@
     function activeElement() { return document.querySelector(`[data-layout-id="${lastMoved || ids[0]}"]`); }
     function updateScaleReadout() {
       const element = activeElement();
-      const scale = element ? Number(getComputedStyle(element).getPropertyValue('--layout-scale')) || .78 : .78;
+      const scale = element ? panelScale(element) : .45;
       const output = tools.querySelector('.rpcore-layout-scale');
       if (output) output.value = `${Math.round(scale * 100)}%`;
     }
@@ -89,7 +94,7 @@
       else if (button.dataset.action === 'reset') Open77.emit('rpcore:layout:reset', { element: lastMoved || ids[0] });
       else if (button.dataset.action === 'size') {
         const element = activeElement(); if (!element) return;
-        const scale = Math.max(.6, Math.min(1, (Number(getComputedStyle(element).getPropertyValue('--layout-scale')) || .78) + Number(button.dataset.delta)));
+        const scale = Math.max(.35, Math.min(1, panelScale(element) + Number(button.dataset.delta)));
         element.style.setProperty('--layout-scale', String(scale));
         updateScaleReadout();
         const rect = element.getBoundingClientRect();
@@ -113,13 +118,13 @@
       const rect = element.getBoundingClientRect();
       const x = Math.max(0, Math.min(innerWidth - rect.width, event.clientX - dragging.dx));
       const y = Math.max(0, Math.min(innerHeight - rect.height, event.clientY - dragging.dy));
-      place(element, { x: x / innerWidth, y: y / innerHeight, scale: Number(getComputedStyle(element).getPropertyValue('--layout-scale')) || .78 });
+      place(element, { x: x / innerWidth, y: y / innerHeight, scale: panelScale(element) });
     });
     document.addEventListener('pointerup', () => {
       if (!dragging) return;
       const element = dragging.element; dragging = null;
       const rect = element.getBoundingClientRect();
-      if (window.Open77) Open77.emit('rpcore:layout:save', { element: element.dataset.layoutId, x: rect.left / innerWidth, y: rect.top / innerHeight, scale: Number(getComputedStyle(element).getPropertyValue('--layout-scale')) || .78 });
+      if (window.Open77) Open77.emit('rpcore:layout:save', { element: element.dataset.layoutId, x: rect.left / innerWidth, y: rect.top / innerHeight, scale: panelScale(element) });
     });
     if (window.Open77 && typeof Open77.on === 'function') {
       Open77.on('rpcore:layout:state', apply);
