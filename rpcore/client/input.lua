@@ -75,7 +75,7 @@ local handlers = {
     action = function() TriggerServerEvent(RPCore.Net.ACTION, "rpcore.action") end,
     journal = toggleJournal,
     hudToggle = function()
-        if SimncHud and type(SimncHud.Toggle) == "function" then SimncHud.Toggle() end
+        if RPCore.Hud and type(RPCore.Hud.Toggle) == "function" then RPCore.Hud.Toggle() end
     end,
 }
 

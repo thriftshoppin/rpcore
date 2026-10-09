@@ -1,10 +1,9 @@
 // Merge these edits into the existing resources.load array in server.jsonc.
-// Keep simnc_core before rpcore for this beta's temporary HUD compatibility read.
+// Keep EventCore before RPCore; RPCore publishes and consumes its HUD state feed.
 // Remove simnc_hud after deploying this RPCore build to avoid duplicate HUDs.
 {
   "resources": {
     "load": [
-      "simnc_core",
       "eventcore",
       "rpcore"
     ]

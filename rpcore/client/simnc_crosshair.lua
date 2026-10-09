@@ -24,9 +24,9 @@ local function aimedIn(state)
 end
 
 local function wanted()
-	-- Switched off in the F5 settings (simnc_core chat/client/prefs.lua).
-	local hud = SimncHud and SimncHud.State and SimncHud.State() or nil
-	if SimncHud and SimncHud.Shown and not SimncHud.Shown() then return false, false end
+	-- A future per-player preference provider can switch this off.
+	local hud = RPCore.Hud and RPCore.Hud.State and RPCore.Hud.State() or nil
+	if RPCore.Hud and RPCore.Hud.Shown and not RPCore.Hud.Shown() then return false, false end
 	if type(hud) == 'table' and type(hud.prefs) == 'table' and hud.prefs.hudCrosshair == 'off' then return false, false end
 	local okA, alive = pcall(Open77.character.isAlive)
 	local okW, armed = pcall(Open77.character.isArmed)

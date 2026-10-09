@@ -2,7 +2,7 @@
 
 **EventCore-ready roleplay HUD and activity framework for Open77.**
 
-This repository contains the 0.2.0-beta.1 HUD migration package. RPCore is the updated home for the existing SIM: Night City HUD: this release moves its existing player-facing display into RPCore while connecting RPCore activity presentation to EventCore.
+This repository contains the 0.2.0-beta.2 HUD state-feed integration. RPCore is the target home for the SIM: Night City player-facing HUD and RP activity interface; EventCore owns the state transport contract.
 
 ## Repository layout
 
@@ -12,10 +12,10 @@ This repository contains the 0.2.0-beta.1 HUD migration package. RPCore is the u
 
 ## Install
 
-Copy the `rpcore/` folder into the server's `resources/` directory. Install EventCore 0.3.0-beta.1 or newer, then load `eventcore` before `rpcore`. Keep `simnc_core` loaded before RPCore for the current compatibility reader, and remove `simnc_hud` after enabling the migrated resource to avoid duplicate HUDs. See [`rpcore/README.md`](rpcore/README.md) and [`rpcore/install/server-load-order.jsonc`](rpcore/install/server-load-order.jsonc).
+Copy the `rpcore/` folder into the server's `resources/` directory. Install EventCore 0.3.0-beta.2 or newer, then load `eventcore` before `rpcore`. Remove `simnc_hud` after enabling the migrated resource to avoid duplicate HUDs. RPCore no longer calls `simnc_core`; remaining SIMNC-owned features are being migrated in later steps. See [`rpcore/README.md`](rpcore/README.md) and [`rpcore/install/server-load-order.jsonc`](rpcore/install/server-load-order.jsonc).
 
-The SIMNC character/vitals panel, weapon card, third-person crosshair, blood overlay, and RPCore activity UI are included. The admin panel remains in `simnc_core` with its existing access controls.
+The migrated character/vitals panel, weapon card, third-person crosshair, blood overlay, and RPCore activity UI are included. This step publishes platform identity/life/vitals through EventCore; money, job, needs, humanity, weather, and the spawn system remain to be migrated. The admin panel remains in its existing resource pending a separate security-reviewed migration.
 
 ## Release status
 
-This is a beta source package. Static review and packaging are complete; resource activation, EventCore delivery, HUD parity, and key rebinding still need verification on an Open77 server and in game. Inventory/outfit providers and durable RPCore player state are future integration work.
+This is a beta source package. The EventCore feed and Open77 snapshot path have had static review only; resource activation, feed delivery, full HUD parity, and key rebinding still need verification on an Open77 server and in game. SIMNC's remaining domain and spawn behavior are future migration work.

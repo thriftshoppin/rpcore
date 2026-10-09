@@ -87,6 +87,15 @@ function RPCore.EventCore.GetPlayerObservers(playerId)
     return call("GetPlayerObservers", playerId)
 end
 
+--- Publish a client-safe RPCore HUD snapshot through EventCore's state feed.
+function RPCore.EventCore.PublishClientState(playerId, channel, schemaVersion, payload)
+    return call("PublishClientState", playerId, channel, schemaVersion, payload)
+end
+
+function RPCore.EventCore.ClearClientState(playerId, channel, schemaVersion)
+    return call("ClearClientState", playerId, channel, schemaVersion)
+end
+
 --- Query a method only when EventCore advertises it for that provider.
 function RPCore.EventCore.CallProvider(serviceId, method, ...)
     if not state.connected then return nil, "eventcore_unavailable" end

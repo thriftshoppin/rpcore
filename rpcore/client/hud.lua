@@ -5,20 +5,21 @@
 --   bottom-mid   -> SIMNC logo
 --   bottom-right -> weapon card (client/weapon.lua, web/weapon.html)
 --
--- OPX decides WHEN the HUD is on screen (logged in, not downed, no select
--- screen / creator / menu covering it) and holds all character data. This
--- resource only asks it, through simnc_core's `SimncState` export, and draws.
+-- RPCore owns this player-facing HUD. It receives server-owned snapshots via
+-- EventCore and renders them without reading another resource's client state.
 -- The game's own health/stamina/weapon widgets are hidden by OPX's HUD module
 -- (config/hud.lua VANILLA), so nothing here claims them.
 
-SimncHud = SimncHud or {}
+RPCore = RPCore or {}
+RPCore.Hud = RPCore.Hud or {}
 
 local page = nil
 local manualOff = false
 local lastShown = nil
 local last = {}
-
-local STATE_MS = 250
+local currentState = nil
+local lastFeedEpoch = nil
+local lastFeedSequence = 0
 
 -- Game screens the HUD steps aside for: the mirror editor (face, hair), the
 -- character creator, the game's own menus (map, inventory, pause) and photo
@@ -36,14 +37,14 @@ end
 
 local function sendStats(force)
     if not page then return end
-    local stats = Open77.stats.get()
-    if type(stats) ~= "table" or type(stats.health) ~= "table" then return end
+    local stats = type(currentState) == "table" and currentState.stats or nil
+    if type(stats) ~= "table" or type(stats.health) ~= "number" or type(stats.healthMax) ~= "number" then return end
     local payload = {
-        health = stats.health.current,
-        healthMax = stats.health.maximum,
+        health = stats.health,
+        healthMax = stats.healthMax,
         armor = stats.armor,
-        stamina = type(stats.stamina) == "table" and stats.stamina.current or nil,
-        staminaMax = type(stats.stamina) == "table" and stats.stamina.maximum or nil,
+        stamina = stats.stamina,
+        staminaMax = stats.staminaMax,
     }
     local signature = not force and table.concat({
         math.floor(tonumber(payload.health) or 0), math.floor(tonumber(payload.healthMax) or 0),
@@ -52,20 +53,12 @@ local function sendStats(force)
     send("simnc:stats", payload, signature)
 end
 
---- What OPX says, or nil when simnc_core is not answering yet.
-local function readState()
-    if type(Open77.exports) ~= "table" or type(Open77.exports.callSync) ~= "function" then return nil end
-    local ok, state = pcall(Open77.exports.callSync, "simnc_core", "SimncState")
-    if ok and type(state) == "table" then return state end
-    return nil
-end
-
-SimncHud.State = function() return SimncHud.last end
+RPCore.Hud.State = function() return currentState end
 -- What is actually on screen right now (the weapon card follows it).
-SimncHud.Shown = function() return lastShown == true end
+RPCore.Hud.Shown = function() return lastShown == true end
 
 local function apply(state, force)
-    SimncHud.last = state
+    currentState = state
     local shown = state ~= nil and state.shown == true and not manualOff and not menuCovered
     if shown ~= lastShown then
         lastShown = shown
@@ -79,14 +72,19 @@ local function apply(state, force)
     if force then last = {} end
 
     local needs = type(state.needs) == "table" and state.needs or {}
-    local rp = {
-        name = state.name, cash = state.cash, bank = state.bank,
-        job = state.job, jobGrade = state.jobGrade, onDuty = state.onDuty == true,
-        food = needs.hunger, water = needs.thirst, energy = needs.energy,
-    }
-    send("simnc:rp", rp, table.concat({ tostring(rp.name), tostring(rp.cash), tostring(rp.bank), tostring(rp.job),
-        tostring(rp.jobGrade), tostring(rp.onDuty), math.floor(tonumber(rp.food) or -1),
-        math.floor(tonumber(rp.water) or -1), math.floor(tonumber(rp.energy) or -1) }, "|"))
+    if state.cash ~= nil or state.bank ~= nil or state.job ~= nil or needs.hunger ~= nil
+        or needs.thirst ~= nil or needs.energy ~= nil then
+        local rp = {
+            name = state.name, cash = state.cash, bank = state.bank,
+            job = state.job, jobGrade = state.jobGrade, onDuty = state.onDuty == true,
+            food = needs.hunger, water = needs.thirst, energy = needs.energy,
+        }
+        send("simnc:rp", rp, table.concat({ tostring(rp.name), tostring(rp.cash), tostring(rp.bank), tostring(rp.job),
+            tostring(rp.jobGrade), tostring(rp.onDuty), math.floor(tonumber(rp.food) or -1),
+            math.floor(tonumber(rp.water) or -1), math.floor(tonumber(rp.energy) or -1) }, "|"))
+    elseif state.name then
+        send("simnc:character", { name = state.name }, tostring(state.name))
+    end
 
     local h = state.humanity
     if type(h) == "table" and tonumber(h.current) and tonumber(h.ceiling) then
@@ -99,11 +97,29 @@ local function apply(state, force)
             tostring(w.weather) .. tostring(w.hour) .. ":" .. tostring(w.minute))
     end
     send("simnc:vehicle", { active = state.inVehicle == true }, tostring(state.inVehicle == true))
-    -- SIMNC: the logo can be switched off in the F5 settings (simnc_core chat/client/prefs.lua).
+    -- The logo remains on unless the published view explicitly disables it.
     local logo = not (type(state.prefs) == "table" and state.prefs.hudLogo == "off")
     send("simnc:prefs", { logo = logo }, tostring(logo))
     sendStats(force)
 end
+
+local function refreshState(force)
+    apply(currentState, force)
+end
+
+RegisterNetEvent("eventcore:net:state:update", function(packet)
+    if type(packet) ~= "table" or packet.protocolVersion ~= 1
+        or packet.channel ~= "rpcore.hud" or packet.schemaVersion ~= 1
+        or packet.publisher ~= "rpcore" or type(packet.epoch) ~= "string"
+        or type(packet.sequence) ~= "number" or packet.sequence < 1
+        or packet.sequence % 1 ~= 0
+        or type(packet.state) ~= "table" then return end
+    if packet.epoch == lastFeedEpoch and packet.sequence <= lastFeedSequence then return end
+    lastFeedEpoch = packet.epoch
+    lastFeedSequence = packet.sequence
+    currentState = packet.visible and packet.state or nil
+    apply(currentState, true)
+end)
 
 local function createPage()
     local surface, err = Open77.webui.create({
@@ -121,31 +137,26 @@ local function createPage()
     lastShown = nil
 
     -- The page asks for its first frame once its listeners exist.
-    page:on("simnc:ready", function() lastShown = nil apply(readState(), true) end)
+    page:on("simnc:ready", function()
+        print("[rpcore] SIMNC HUD WebUI is ready")
+        lastShown = nil
+        refreshState(true)
+    end)
 
     CreateThread(function()
-        while page ~= nil do
-            apply(readState(), false)
-            Wait(STATE_MS)
+        Wait(5000)
+        if page == surface and not pageReady then
+            print("[rpcore] SIMNC HUD WebUI did not report ready; check the page and web_files")
         end
     end)
-    -- Vitals move faster than the rest; sampled on their own, sent only on change.
-    CreateThread(function()
-        while page ~= nil do
-            if lastShown then sendStats(false) end
-            Wait(50)
-        end
-    end)
+
 end
 
 AddEventHandler("open77:menuStateChanged", function(open, _pauseMenu, source)
     local isOpen = open == true or tostring(open) == "1" or tostring(open) == "true"
     menuCovered = isOpen and HIDE_FOR[tostring(source)] == true
-    apply(readState(), false)
+    refreshState(false)
 end)
-
-RegisterNetEvent("simnc:stats:poke", function() sendStats(true) end)
-AddEventHandler("open77:playerStatsChanged", function() sendStats(false) end)
 
 AddEventHandler("onClientResourceStart", function(name)
     if name == GetCurrentResourceName() then createPage() end
@@ -157,20 +168,19 @@ AddEventHandler("onClientResourceStop", function(name)
     page = nil
 end)
 
--- For screenshots and testing: /simnchud turns the whole SIMNC HUD off and on.
-RegisterCommand("simnchud", function()
+-- For screenshots and testing: /rpcore.hud turns the RPCore HUD off and on.
+RegisterCommand("rpcore.hud", function()
     manualOff = not manualOff
     lastShown = nil
-    apply(readState(), true)
-    if SimncHud.OnManual then SimncHud.OnManual(manualOff) end
+    refreshState(true)
+    if RPCore.Hud.OnManual then RPCore.Hud.OnManual(manualOff) end
 end, false)
 
--- RPCore's menu key and HUD visibility action use the same behavior as the
--- legacy /simnchud command.
-SimncHud.Toggle = function()
+-- RPCore's menu key and HUD visibility action use the same behavior.
+RPCore.Hud.Toggle = function()
     manualOff = not manualOff
     lastShown = nil
-    apply(readState(), true)
-    if SimncHud.OnManual then SimncHud.OnManual(manualOff) end
+    refreshState(true)
+    if RPCore.Hud.OnManual then RPCore.Hud.OnManual(manualOff) end
     return not manualOff
 end

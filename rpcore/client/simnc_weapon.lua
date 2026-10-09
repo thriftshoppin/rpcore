@@ -16,8 +16,8 @@ local function num(v, d) v = tonumber(v) return v ~= nil and v == v and v or d e
 local function truthy(v) return v == true or v == 1 or v == "1" or v == "true" end
 
 local function shown()
-    local state = SimncHud and SimncHud.State and SimncHud.State() or nil
-    local hudUp = SimncHud and SimncHud.Shown and SimncHud.Shown() or false
+    local state = RPCore.Hud and RPCore.Hud.State and RPCore.Hud.State() or nil
+    local hudUp = RPCore.Hud and RPCore.Hud.Shown and RPCore.Hud.Shown() or false
     -- With the HUD (so it hides in the same screens), and out of a vehicle only:
     -- OPX draws the vehicle read-out, and freeroam hid the card there too.
     -- ...and not switched off in the F5 settings.
@@ -106,8 +106,9 @@ local function create()
     end)
 end
 
-SimncHud = SimncHud or {}
-SimncHud.OnManual = function() lastSig = nil push(true) end
+RPCore = RPCore or {}
+RPCore.Hud = RPCore.Hud or {}
+RPCore.Hud.OnManual = function() lastSig = nil push(true) end
 
 AddEventHandler("onClientResourceStart", function(name)
     if name == GetCurrentResourceName() then create() end

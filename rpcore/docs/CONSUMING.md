@@ -4,7 +4,7 @@ RPCore is the shared base. A mission resource owns its story and content; RPCore
 Status: exports are written but **not yet run in-game**.
 
 ## 1. Declare the dependency
-In your resource's `open77.lua` (same syntax `simnc_bank` uses for simnc_core):
+In your resource's `open77.lua`:
 ```lua
 dependency "rpcore >=0.1.1"
 ```

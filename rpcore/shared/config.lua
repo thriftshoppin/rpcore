@@ -49,10 +49,10 @@ RPCore.Config = {
         provider = {
             -- Ships as "none" so RPCore installs with ZERO edits to any other resource.
             -- To pay real money: set type = "export", add "rpcore" to the economy resource's
-            -- caller allow-list (SIMNC: simnc_core/config/bridge.lua WRITERS), and set the
+            -- trusted caller allow-list, and set the
             -- demo reward below to { kind = "currency", amount = 500 }.
             type = "none",           -- "export" | "none" | (register your own: RPCore.Rewards.RegisterProvider)
-            resource = "simnc_core", -- SERVER-SPECIFIC: the resource exporting the call below
+            resource = "example_economy", -- SERVER-SPECIFIC: the resource exporting the call below
             export = "AddMoney",     -- called as export(player, currency, amount, reason)
             currency = "EDDIES",     -- second argument of the call
             reason = "rpcore",       -- fourth argument (audit label)
@@ -60,7 +60,7 @@ RPCore.Config = {
     },
 
     -- Public exports (server/exports.lua). Writes are refused unless the calling
-    -- resource is listed here (same model as simnc_core's bridge WRITERS). Empty = none.
+    -- resource is listed here. Empty = none.
     exports = {
         enabled = true,
         allowedCallers = {},     -- e.g. { "my_fixer_module" }

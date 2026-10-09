@@ -1,12 +1,12 @@
 --- Public export surface: how OTHER resources use RPCore.
--- Repository rules this follows (see rp_zones, simnc_core bridge, open77_contextmenu):
+-- Repository rules this follows (see rp_zones and open77_contextmenu):
 --   * exports are synchronous and never yield (they read/change in-memory state only);
 --   * values crossing resources are plain data -- Lua functions cannot be passed, so a
 --     definition registered from outside describes its objectives as DATA
 --     (`completeOn = { event = "...", where = { key = value } }`) and the consumer resolves
 --     objectives by calling EmitObjectiveEvent from its own game logic;
 --   * writes are refused unless the CALLING resource is named in
---     Config.exports.allowedCallers (same model as simnc_core's bridge WRITERS);
+--     Config.exports.allowedCallers;
 --     reads (GetSnapshot) are open.
 --
 --   exports.rpcore:RegisterDefinition(def)                  -> true | nil, reason
