@@ -9,7 +9,7 @@ RPCore becomes the updated home for the existing SIM: Night City HUD. The move p
 - Character, money, job, needs, humanity, weather, and HUD visibility from `simnc_core`'s `SimncState`.
 - Health, armor, and stamina; weapon card and ammunition; third-person crosshair; blade-hit blood overlay; sounds, existing keybind behavior, and screen/menu visibility rules.
 - Existing RPCore activity offers, accept/decline, objective tracking, completion/reward state, journal, server commands, and consumer exports.
-- The server's existing administrator panel and its authorization rules, which are part of `simnc_core` in the supplied archive. `simnc_core` stays loaded, unchanged; the RPCore player controls menu does not replace or absorb its privileged admin tools.
+- The server's existing administrator panel and its authorization rules, owned by Open77's bundled `open77_admin` resource. RPCore does not replace or absorb those privileged tools.
 
 RPCore has removed the direct SIMNC client export read. EventCore owns the versioned client-state transport, and RPCore currently publishes Open77 platform identity, life state, and vitals. SIMNC-specific money, job, needs, humanity, weather, spawn, and character-session behavior remains migration work. This keeps the framework usable outside SIMNC while those domains are moved in stages.
 
@@ -39,6 +39,6 @@ RPCore has removed the direct SIMNC client export read. EventCore owns the versi
 ## Release boundaries
 
 - The HUD feed transport is implemented, but no in-game verification is claimed.
-- `simnc_hud` can be removed after migration to avoid duplicate surfaces. `simnc_core` remains temporarily for domains and admin tools not yet migrated; RPCore no longer reads its HUD client export.
+- `simnc_hud` can be removed after migration to avoid duplicate surfaces. RPCore no longer reads `simnc_core` state; platform admin commands and panel remain owned by `open77_admin`.
 - Inventory, outfit, mission, and health providers are not invented in RPCore when their authoritative owners do not expose them through EventCore yet.
 - The input key defaults are test defaults, not a requirement that players keep them. All RPCore bindings remain individually rebindable in the custom panel and in Open77's standard key-binding settings.

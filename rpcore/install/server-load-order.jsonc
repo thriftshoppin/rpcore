@@ -1,6 +1,7 @@
 // Merge these edits into the existing resources.load array in server.jsonc.
 // Keep EventCore before RPCore; RPCore publishes and consumes its HUD state feed.
 // Remove simnc_hud after deploying this RPCore build to avoid duplicate HUDs.
+// RPCore no longer depends on simnc_core; keep it only for other consumers.
 {
   "resources": {
     "load": [

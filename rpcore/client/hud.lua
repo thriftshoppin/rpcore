@@ -125,7 +125,7 @@ local function createPage()
     local surface, err = Open77.webui.create({
         entry = "web/simnc/index.html",
         layer = "hud",
-        zIndex = 600, -- above the blood layer (10), below OPX (700) and the crosshair (850)
+        zIndex = 800, -- above the OPX HUD (700), below the crosshair (850)
         transparent = true,
         visible = true,
     })
@@ -135,6 +135,16 @@ local function createPage()
     end
     page = surface
     lastShown = nil
+
+    -- RPCore replaces these native widgets with its own HUD. Keep the native
+    -- crosshair visible in first person; the custom crosshair only covers the
+    -- third-person case where Open77's reticle is not already drawing.
+    for _, component in ipairs({ "health", "stamina", "weapon" }) do
+        local ok, reason = Open77.hud.setVisible(component, false)
+        if not ok then
+            print("[rpcore] could not hide native " .. component .. " HUD: " .. tostring(reason))
+        end
+    end
 
     -- The page asks for its first frame once its listeners exist.
     page:on("simnc:ready", function()

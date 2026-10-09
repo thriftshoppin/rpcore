@@ -20,7 +20,7 @@ RPCore is the updated home for the current SIM: Night City HUD. This iteration m
 - Resource manifests and Warden permissions are accepted by the target Open77 build.
 - EventCore is installed before RPCore, its documented export call works, and activity UI packets reach the player.
 - HUD display parity, EventCore state delivery, surface ordering, settings focus behavior, and key persistence still need in-game verification.
-- Confirm the admin panel inside `simnc_core` remains available with its original ACLs; it is not included or modified by this HUD-only resource package.
+- Confirm the bundled `open77_admin` panel and commands remain available with their original ACLs; they are not included or modified by this HUD-only resource package.
 - Confirm no visible duplicate surface remains after removing `simnc_hud` from the load list.
 
 ## Not implemented in this stage

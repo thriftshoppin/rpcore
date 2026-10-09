@@ -2,7 +2,7 @@
 
 **EventCore-ready roleplay HUD and activity framework for Open77.**
 
-This repository contains the 0.2.0-beta.2 HUD state-feed integration. RPCore is the target home for the SIM: Night City player-facing HUD and RP activity interface; EventCore owns the state transport contract.
+This repository contains the 0.2.1 HUD priority and native-widget ownership update. RPCore is the target home for the SIM: Night City player-facing HUD and RP activity interface; EventCore owns the state transport contract.
 
 ## Repository layout
 
@@ -12,7 +12,7 @@ This repository contains the 0.2.0-beta.2 HUD state-feed integration. RPCore is 
 
 ## Install
 
-Copy the `rpcore/` folder into the server's `resources/` directory. Install EventCore 0.3.0-beta.2 or newer, then load `eventcore` before `rpcore`. Remove `simnc_hud` after enabling the migrated resource to avoid duplicate HUDs. RPCore no longer calls `simnc_core`; remaining SIMNC-owned features are being migrated in later steps. See [`rpcore/README.md`](rpcore/README.md) and [`rpcore/install/server-load-order.jsonc`](rpcore/install/server-load-order.jsonc).
+Copy the `rpcore/` folder into the server's `resources/` directory. Install EventCore 0.3.1 or newer, then load `eventcore` before `rpcore`. Remove `simnc_hud` after enabling the migrated resource to avoid duplicate HUDs. RPCore no longer calls `simnc_core`; remaining SIMNC-owned features are being migrated in later steps. See [`rpcore/README.md`](rpcore/README.md) and [`rpcore/install/server-load-order.jsonc`](rpcore/install/server-load-order.jsonc).
 
 The migrated character/vitals panel, weapon card, third-person crosshair, blood overlay, and RPCore activity UI are included. This step publishes platform identity/life/vitals through EventCore; money, job, needs, humanity, weather, and the spawn system remain to be migrated. The admin panel remains in its existing resource pending a separate security-reviewed migration.
 

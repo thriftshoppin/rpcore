@@ -4,7 +4,7 @@
 RPCore = RPCore or {}
 local Config = RPCore.Config
 
-RPCore.VERSION = "0.2.0-beta.2"
+RPCore.VERSION = "0.2.1"
 
 -- ── logging (Open77.log is the repository convention) ──────────────────────
 local function log(level, text)

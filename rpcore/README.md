@@ -1,14 +1,16 @@
-# RPCore 0.2.0-beta.2 — HUD state feed integration
+# RPCore 0.2.1 — HUD priority and native widget ownership
 
 RPCore is the updated home for the SIM: Night City HUD and the server-agnostic RP activity HUD. This is a continuation of the existing HUD: the SIMNC character display, vitals, weapon card, crosshair, and blood overlay move into RPCore with their established display behavior. RPCore also retains its activity offers, tracker, journal, developer commands, and consumer exports.
 
 ## Install and load order
 
 1. Copy this `rpcore/` folder into the server's `resources/` folder.
-2. Install EventCore 0.3.0-beta.2 or newer into the same resources root.
-3. In `server.jsonc`, put `eventcore` before `rpcore`. Remove `simnc_hud` from the load list after RPCore is installed, so the old and moved HUD surfaces do not both render. RPCore no longer reads `simnc_core` state.
+2. Install EventCore 0.3.1 or newer into the same resources root.
+3. In `server.jsonc`, put `eventcore` before `rpcore`. Remove `simnc_hud` from the load list after RPCore is installed, so the old and moved HUD surfaces do not both render. RPCore no longer reads `simnc_core` state; keep `simnc_core` only if another installed resource still needs it.
 4. Restart the server. Confirm both resources start without errors; `/rpcore.status` reports the EventCore connection.
 5. In game, use `/rpcore.demo` to see the activity HUD. Press **F6** for RPCore Controls. Accept **F7**, decline **F11**, action **F12**, journal **Insert**, and HUD visibility **Home** are test defaults. Change or reset each binding in the panel or the game's key-binding settings.
+
+RPCore requests `ui.vanilla.hud` so it can hide the native health, stamina, and weapon widgets that its HUD replaces. Its HUD surface uses z-index 800, above the OPX HUD at 700 and below RPCore's crosshair at 850.
 
 The supplied overlay at `install/server-load-order.jsonc` illustrates the two load-list edits. Merge them into the server's existing resource list; do not replace the server configuration with the overlay.
 
@@ -18,7 +20,7 @@ The supplied overlay at `install/server-load-order.jsonc` illustrates the two lo
 - Weapon/ammunition card, third-person crosshair, and blade-hit blood overlay.
 - Existing activity offer, accept/decline flow, objectives, results/rewards, journal, resource commands, and public consumer exports.
 - F6 settings panel with the keybinding cheatsheet, per-action rebind, reset-to-test-default, and Escape close behavior.
-- Existing admin panel remains inside the still-loaded `simnc_core` resource with its existing access controls; this player HUD does not replace or absorb its privileged tools.
+- Open77's bundled `open77_admin` resource remains the owner of the platform admin panel and its ACL-checked commands; RPCore does not replace or absorb those tools.
 
 ## EventCore integration
 

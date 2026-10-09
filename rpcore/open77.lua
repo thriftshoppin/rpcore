@@ -7,10 +7,10 @@
 -- client-safe state feed.
 
 resource "rpcore"
-version "0.2.0-beta.2"
+version "0.2.1"
 open77_version ">=0.0.1"
 auto_start true
-dependency "eventcore >=0.3.0-beta.2"
+dependency "eventcore >=0.3.1"
 -- RPCore owns persistent HUD WebUI surfaces; recreate them after a reconnect
 -- rather than trying to reuse stale CEF pages across a resource reload.
 reload_policy "reconnect"
@@ -28,6 +28,7 @@ permissions {
     "player.weapons.read",
     "players.read",
     "player.aim.read",
+    "ui.vanilla.hud",
 }
 
 shared_script "shared/constants.lua"

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+- Raised the SIMNC HUD WebUI above the OPX HUD layer while keeping the custom crosshair above it.
+- Declared `ui.vanilla.hud` and hid the native health, stamina, and weapon widgets replaced by RPCore.
+- Corrected admin ownership references: Warden/Open77 ACL remains authoritative, and the bundled `open77_admin` resource owns its panel and commands.
+
 ## 0.2.0-beta.2
 
 - Added a server-side HUD snapshot publisher using Open77 player identity, life state, and vitals.
