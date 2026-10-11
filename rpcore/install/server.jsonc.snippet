@@ -1,0 +1,9 @@
+// Merge into your server.jsonc (see docs/SERVER-SETUP.md)
+{
+  "resources": { "load": [ /* ...existing... */ "eventcore", "open77_chat", "rpcore" ] },
+  "requiredMods": {
+    "enabled": true,       // required: rpcore declares a preload_mod
+    "unsecured": true,     // required unless the pack's SHA-256 is verified; see SERVER-SETUP.md
+    "packages": []
+  }
+}

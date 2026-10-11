@@ -42,6 +42,8 @@ end
 
 AddEventHandler('onClientResourceStart', function(name)
 	if name ~= GetCurrentResourceName() then return end
+	-- The game's crosshair stays; the web crosshair is an off-by-default fallback.
+	if not (RPCore.Config.webFallback and RPCore.Config.webFallback.crosshair == true) then return end
 	local reason
 	page, reason = Open77.webui.create({
 		entry = 'web/hud/crosshair.html', layer = 'hud', width = 1920, height = 1080,

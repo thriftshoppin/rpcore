@@ -7,8 +7,9 @@
 --
 -- RPCore owns this player-facing HUD. It receives server-owned snapshots via
 -- EventCore and renders them without reading another resource's client state.
--- The game's own health/stamina/weapon widgets are hidden by OPX's HUD module
--- (config/hud.lua VANILLA), so nothing here claims them.
+-- Native widgets are managed by client/vanilla.lua (RPCore.Vanilla): it applies
+-- Config.vanilla defaults (hide the widgets an RPCore element replaces) and any
+-- per-player overrides EventCore sends.
 
 RPCore = RPCore or {}
 RPCore.Hud = RPCore.Hud or {}
@@ -60,6 +61,9 @@ RPCore.Hud.Shown = function() return lastShown == true end
 local function apply(state, force)
     currentState = state
     local shown = state ~= nil and state.shown == true and not manualOff and not menuCovered
+    -- Native bars (hunger / thirst / cyberpsychosis) follow the same visibility; this must
+    -- run BEFORE the early return below so hiding propagates to the game HUD too.
+    if RPCore.NativeHud then RPCore.NativeHud.OnState(state, shown) end
     if shown ~= lastShown then
         lastShown = shown
         -- The SURFACE stays up for the whole session; the page hides its own
@@ -108,6 +112,13 @@ local function apply(state, force)
         send("rpcore:hud:weather", { weather = w.weather, hour = w.hour, minute = w.minute },
             tostring(w.weather) .. tostring(w.hour) .. ":" .. tostring(w.minute))
     end
+    -- Blackwall / relic-malfunction effect levels (0..1) for the cyberpsychosis meter.
+    local fx = type(state.psychosis) == "table" and state.psychosis or {}
+    local blackwall = math.max(0, math.min(1, tonumber(fx.blackwall) or 0))
+    local relic = math.max(0, math.min(1, tonumber(fx.relic) or 0))
+    send("rpcore:hud:psychosis", { blackwall = blackwall, relic = relic },
+        ("%.3f|%.3f"):format(blackwall, relic))
+
     sendStats(force)
 end
 
@@ -116,6 +127,12 @@ local function refreshState(force)
 end
 
 RegisterNetEvent("eventcore:net:state:update", function(packet)
+    -- One handler serves every RPCore feed channel (a second registration of the
+    -- same event is not assumed to stack on this host).
+    if type(packet) == "table" and packet.channel == "rpcore.hud.control" then
+        if RPCore.Vanilla then RPCore.Vanilla.OnFeed(packet) end
+        return
+    end
     if type(packet) ~= "table" or packet.protocolVersion ~= 1
         or packet.channel ~= "rpcore.hud" or packet.schemaVersion ~= 1
         or packet.publisher ~= "rpcore" or type(packet.epoch) ~= "string"
@@ -130,6 +147,10 @@ RegisterNetEvent("eventcore:net:state:update", function(packet)
 end)
 
 local function createPage()
+    -- Native game HUD first: RPCore only adds bars to it. The web vitals panel is an
+    -- off-by-default fallback (Config.webFallback.vitals).
+    if RPCore.Vanilla then RPCore.Vanilla.ApplyDefaults() end
+    if not (RPCore.Config.webFallback and RPCore.Config.webFallback.vitals == true) then return end
     local surface, err = Open77.webui.create({
         entry = "web/hud/index.html",
         layer = "hud",
@@ -145,15 +166,10 @@ local function createPage()
     lastShown = nil
     if RPCore.Layout then RPCore.Layout.RegisterSurface("vitals", page, { "vitals", "occupation" }) end
 
-    -- RPCore replaces these native widgets with its own HUD. Keep the native
-    -- crosshair visible in first person; the custom crosshair only covers the
-    -- third-person case where Open77's reticle is not already drawing.
-    for _, component in ipairs({ "health", "stamina", "weapon" }) do
-        local ok, reason = Open77.hud.setVisible(component, false)
-        if not ok then
-            print("[rpcore] could not hide native " .. component .. " HUD: " .. tostring(reason))
-        end
-    end
+    -- RPCore replaces some native widgets with its own HUD (Config.vanilla sets
+    -- which). Keep the native crosshair visible in first person; the custom
+    -- crosshair only covers the third-person case where Open77's reticle is not
+    -- already drawing.
 
     -- The page asks for its first frame once its listeners exist.
     page:on("rpcore:hud:ready", function()

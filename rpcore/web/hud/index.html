@@ -34,6 +34,25 @@
     .vital[data-kind="sanity"]::before{background:linear-gradient(106deg,rgba(255,255,255,.14),transparent 19%,transparent 77%,rgba(255,35,58,var(--psychosis)))}
     .vital[data-kind="sanity"]::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:var(--psychosis);background:linear-gradient(180deg,transparent 42%,rgba(255,22,52,.05) 47%,rgba(255,83,104,.82) 50%,rgba(255,25,49,.18) 54%,transparent 61%),repeating-linear-gradient(90deg,rgba(255,28,54,.16) 0 1px,transparent 1px 7px),repeating-linear-gradient(0deg,transparent 0 5px,rgba(255,28,54,.12) 5px 6px),linear-gradient(90deg,rgba(40,0,8,.9),rgba(0,0,0,.45) 48%,rgba(55,0,10,.86))}
     .vital[data-kind="sanity"] .meter{border-color:rgba(255,48,77,var(--psychosis));box-shadow:inset 0 1px 3px rgba(0,0,0,.65),0 0 var(--psychosis-glow,0px) rgba(255,32,60,var(--psychosis))}
+    /* Blackwall + relic handles (server levels 0..1 via rpcore:hud:psychosis).
+       Effects animate left/filter/clip-path/opacity only: the root and .vitals
+       already own transforms (layout scale, 3D tilt) that must not be replaced. */
+    .fx-tag{margin:0 0 3px 4px;font:700 11px/1 var(--mono);letter-spacing:.14em;color:#ff2a45;text-shadow:0 0 9px rgba(255,32,60,.75)}
+    .fx-tag[hidden]{display:none}
+    #rpcore-hud[data-relic="on"] .fx-tag{animation:rp-relic-blink 1.1s steps(1) infinite}
+    #rpcore-hud[data-blackwall="on"] .vital[data-kind="sanity"]::after{opacity:max(var(--psychosis),var(--blackwall,0));animation:rp-bw-scan calc(1.7s - var(--blackwall,0) * 1.2s) steps(7) infinite}
+    #rpcore-hud[data-blackwall="on"] .vital[data-kind="sanity"]{border-color:rgba(255,40,70,calc(.35 + var(--blackwall,0) * .65));box-shadow:0 0 calc(var(--blackwall,0) * 26px) rgba(255,20,50,calc(var(--blackwall,0) * .7))}
+    #rpcore-hud[data-relic="on"] .vitals{position:relative;animation:rp-relic-glitch calc(3.4s - var(--relic,0) * 2.6s) steps(1) infinite}
+    @keyframes rp-bw-scan{to{background-position:0 0,-14px 0,0 -12px,0 0}}
+    @keyframes rp-relic-blink{50%{opacity:.25}}
+    @keyframes rp-relic-glitch{
+      0%,78%,100%{left:0;filter:none;clip-path:none;opacity:1}
+      80%{left:calc(var(--relic,0) * -6px);filter:hue-rotate(calc(var(--relic,0) * 50deg)) saturate(1.5)}
+      83%{left:calc(var(--relic,0) * 7px);clip-path:inset(18% 0 41% 0);opacity:calc(1 - var(--relic,0) * .5)}
+      86%{left:0;filter:brightness(1.6) contrast(1.3);clip-path:none;opacity:1}
+      90%{opacity:calc(1 - var(--relic,0) * .25)}
+    }
+    @media(prefers-reduced-motion:reduce){#rpcore-hud .vitals,#rpcore-hud .fx-tag,#rpcore-hud .vital::after{animation:none!important}}
     .icon-cell{position:relative;z-index:1;display:grid;place-items:center;width:32px;height:32px;color:var(--tone);background:linear-gradient(145deg,rgba(var(--tone-rgb),.16),rgba(4,10,19,.36));border:1px solid rgba(var(--tone-rgb),.3);clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);box-shadow:inset 0 1px rgba(255,255,255,.2),0 0 13px rgba(var(--tone-rgb),.15)}
     .icon-cell svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px currentColor)}
     .meter-block{position:relative;z-index:1;min-width:0;display:grid;gap:2px;transform:translateZ(4px)}
@@ -64,6 +83,7 @@
     </aside>
 
     <section class="vitals" aria-label="Health and survival meters">
+      <p class="fx-tag" id="fx-tag" hidden role="status"></p>
       <article class="vital" data-kind="health" data-vital="health" hidden>
         <span class="icon-cell" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 8.8c0 5.1-8.8 11-8.8 11s-8.8-5.9-8.8-11A4.7 4.7 0 0 1 12 6.1a4.7 4.7 0 0 1 8.8 2.7Z"/><path d="M5 12h4l2-4 2.2 8 2-4H19"/></svg></span>
         <span class="meter-block"><span class="label">HEALTH</span><span class="meter"><i class="meter-fill"></i></span></span><strong class="value">—</strong>
@@ -133,6 +153,25 @@
         setGauge('armor', number(data.armor), number(data.armorMax));
       }
 
+      // Blackwall / relic-malfunction handles for the cyberpsychosis meter.
+      // `sanity` stays the severity value; these levels only dress the meter.
+      const fxTag = document.getElementById('fx-tag');
+      function applyPsychosis(data) {
+        if (!data || typeof data !== 'object') return;
+        const level = value => Math.max(0, Math.min(1, number(value) ?? 0));
+        const blackwall = level(data.blackwall);
+        const relic = level(data.relic);
+        root.dataset.blackwall = blackwall > 0.01 ? 'on' : 'off';
+        root.dataset.relic = relic > 0.01 ? 'on' : 'off';
+        root.style.setProperty('--blackwall', blackwall.toFixed(3));
+        root.style.setProperty('--relic', relic.toFixed(3));
+        const labels = [];
+        if (relic > 0.05) labels.push('RELIC MALFUNCTION');
+        if (blackwall > 0.05) labels.push(relic > 0.05 ? 'BLACKWALL BREACH' : 'BLACKWALL INTERFERENCE');
+        fxTag.hidden = labels.length === 0;
+        fxTag.textContent = labels.join(' \u00b7 ');
+      }
+
       function applyRoleplay(data) {
         if (!data || typeof data !== 'object') return;
         setGauge('breath', number(data.breath), number(data.breathMax));
@@ -166,12 +205,14 @@
         Open77.on('rpcore:hud:visible', data => { document.body.dataset.visible = String(!!(data && data.shown)); });
         Open77.on('rpcore:hud:stats', applyStats);
         Open77.on('rpcore:hud:roleplay', applyRoleplay);
+        Open77.on('rpcore:hud:psychosis', applyPsychosis);
         Open77.emit('rpcore:hud:ready', {});
       } else if (new URLSearchParams(location.search).has('preview')) {
         document.body.dataset.visible = 'true';
         document.body.dataset.preview = 'true';
         applyStats({ health: 742, healthMax: 1000, stamina: 680, staminaMax: 800, armor: 320, armorMax: 500 });
         applyRoleplay({ breath: 96, breathMax: 100, food: 58, water: 72, sanity: 72, level: 12 });
+        applyPsychosis({ blackwall: 0.6, relic: 0.5 });
       }
     })();
   </script>

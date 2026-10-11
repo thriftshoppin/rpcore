@@ -16,6 +16,7 @@
     body.rpcore-layout-active #stack{display:flex!important;width:210px;height:70px;min-height:0}
     body.rpcore-layout-active #journal,body.rpcore-layout-active #controls{display:block!important;width:240px;height:82px;max-height:none;min-height:0;overflow:hidden;padding:0!important}
     body.rpcore-layout-active .weapon-hud{display:block!important;width:220px;height:72px;min-height:0}
+    .rp-ctl-hidden{display:none!important}
     #stack{transform:scale(calc(var(--scale) * var(--layout-scale,.85)))}
     #journal{transform:translateY(-50%) scale(calc(var(--scale) * var(--layout-scale,.85)))}
     #controls{transform:translate(-50%,-50%) scale(var(--layout-scale,.85))}
@@ -64,6 +65,46 @@
       const scale = Number.isFinite(Number(point.scale)) ? Math.max(.35, Math.min(1, Number(point.scale))) : defaultScale(element);
       element.style.setProperty('--layout-scale', String(scale));
     }
+    // ── server-driven element control (EventCore -> RPCore -> here) ──────────
+    // Each page applies only the elements it contains. An override placement wins
+    // over the player's saved F9 position while it is set; clearing it hands the
+    // element back. Overridden elements are locked against dragging.
+    const SELECTORS = {
+      vitals: '[data-layout-id="vitals"]', occupation: '[data-layout-id="occupation"]',
+      weapon: '[data-layout-id="weapon"]', stack: '[data-layout-id="stack"]',
+      journal: '[data-layout-id="journal"]', controls: '[data-layout-id="controls"]',
+      level: '#level-card',
+    };
+    for (const vital of ['health', 'stamina', 'armor', 'breath', 'food', 'water', 'sanity']) {
+      SELECTORS['vital.' + vital] = `[data-vital="${vital}"]`;
+    }
+    let controlState = {};
+    function controlPlacement(id) {
+      const entry = controlState[id];
+      return entry && entry.placement && Number.isFinite(Number(entry.placement.x)) && Number.isFinite(Number(entry.placement.y))
+        ? entry.placement : null;
+    }
+    function effectivePoint(id, saved) {
+      const forced = controlPlacement(id);
+      if (!forced) return saved || null;
+      const scale = forced.scale !== undefined && forced.scale !== null ? forced.scale : (saved ? saved.scale : undefined);
+      return { x: Number(forced.x), y: Number(forced.y), scale };
+    }
+    function applyControl(payload) {
+      const elements = payload && typeof payload.elements === 'object' && payload.elements ? payload.elements : {};
+      controlState = elements;
+      for (const [id, selector] of Object.entries(SELECTORS)) {
+        const element = document.querySelector(selector);
+        if (!element) continue;
+        const entry = controlState[id];
+        element.classList.toggle('rp-ctl-hidden', !!entry && entry.visible === false);
+        if (entry && typeof entry.opacity === 'number' && Number.isFinite(entry.opacity)) {
+          element.style.opacity = String(Math.max(0, Math.min(1, entry.opacity)));
+        } else element.style.removeProperty('opacity');
+      }
+      if (currentState) apply(currentState); // re-resolve placement: override > saved > default
+    }
+
     let currentState = null;
     let lastMoved = null;
     function activeElement() { return document.querySelector(`[data-layout-id="${lastMoved || ids[0]}"]`); }
@@ -81,7 +122,8 @@
       for (const id of ids) {
         const element = document.querySelector(`[data-layout-id="${id}"]`);
         if (!element) continue;
-        if (saved[id]) place(element, saved[id]);
+        const point = effectivePoint(id, saved[id]);
+        if (point) place(element, point);
         else {
           for (const property of ['position','left','top','right','bottom','transform-origin','--layout-scale']) element.style.removeProperty(property);
         }
@@ -94,6 +136,7 @@
       else if (button.dataset.action === 'reset') Open77.emit('rpcore:layout:reset', { element: lastMoved || ids[0] });
       else if (button.dataset.action === 'size') {
         const element = activeElement(); if (!element) return;
+        if (controlPlacement(element.dataset.layoutId)) return; // placed by the server
         const scale = Math.max(.35, Math.min(1, panelScale(element) + Number(button.dataset.delta)));
         element.style.setProperty('--layout-scale', String(scale));
         updateScaleReadout();
@@ -107,6 +150,7 @@
       if (!document.body.classList.contains('rpcore-layout-active') || event.button !== 0) return;
       const element = event.target.closest('[data-layout-id]');
       if (!element || event.target.closest('.rpcore-layout-tools')) return;
+      if (controlPlacement(element.dataset.layoutId)) return; // placed by the server
       const rect = element.getBoundingClientRect();
       lastMoved = element.dataset.layoutId;
       dragging = { element, dx: event.clientX - rect.left, dy: event.clientY - rect.top };
@@ -128,6 +172,7 @@
     });
     if (window.Open77 && typeof Open77.on === 'function') {
       Open77.on('rpcore:layout:state', apply);
+      Open77.on('rpcore:element:control', applyControl);
       Open77.emit('rpcore:layout:ready', { surface });
     }
     window.RPCoreLayout = { apply };

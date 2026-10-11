@@ -84,6 +84,8 @@ AddEventHandler("open77:weapons:completed", function(requestId, operation, accep
 end)
 
 local function create()
+    -- The native weapon widget stays; this card is an off-by-default web fallback.
+    if not (RPCore.Config.webFallback and RPCore.Config.webFallback.weapon == true) then return end
     local surface, err = Open77.webui.create({
         entry = "web/hud/weapon.html",
         layer = "hud",

@@ -12,11 +12,11 @@ Use `/rpcore.layout` or press the configurable **F9** binding to arrange RPCore'
 
 1. Copy this `rpcore/` folder into the server's `resources/` folder.
 2. Install EventCore 0.6.1 or newer into the same resources root. Add `rpcore` to EventCore `server/whitelist.lua`.
-3. In `server.jsonc`, put `eventcore` before `rpcore`. Remove any other resource that creates duplicate HUD widgets. On servers that run the bundled Freeroam gamemode, apply [`install/disable-freeroam-hud.patch`](install/disable-freeroam-hud.patch) from the server root so Freeroam keeps its gameplay and scoreboard but does not create a second player HUD. Keep unrelated gameplay resources enabled when they provide services used by other installed resources.
+3. In `server.jsonc`, put `eventcore` before `rpcore` and load `rpcore` exactly once (never keep an `rpcore/` folder inside the EventCore folder). Also load `open77_chat`, which EventCore chat needs. Remove any other resource that creates duplicate HUD widgets. On servers that run the bundled Freeroam gamemode, apply [`install/disable-freeroam-hud.patch`](install/disable-freeroam-hud.patch) from the server root so Freeroam keeps its menu, gameplay, scoreboard and respawn but does not create a second player HUD or hide the game's HUD widgets. Optionally apply [`install/disable-freeroam-killfeed.patch`](install/disable-freeroam-killfeed.patch) to turn off Freeroam's kill feed. Freeroam is the only stock resource that respawns dead players; without it you need your own respawn resource.
 4. Restart the server. Confirm both resources start without errors; `/rpcore.status` reports the EventCore connection.
 5. In game, use `/rpcore.demo` to see the activity HUD. Press **F6** for RPCore Controls. Accept **F7**, decline **F11**, action **F12**, journal **Insert**, HUD visibility **Home**, and arrange panels **F9** are test defaults. Change or reset each binding in the panel or the game's key-binding settings.
 
-RPCore requests `ui.vanilla.hud` to hide the native health, stamina, and weapon widgets that its HUD replaces, `ui.vanilla.map` to create native map pins, and `map.read`/`map.control` for its native-map Locations tab. Approve those permissions in Warden. Its HUD surface uses z-index 800, above the OPX HUD at 700 and below RPCore's crosshair at 850.
+RPCore requests `ui.vanilla.hud` so a server can show or hide native widgets at runtime through `SetHudElement`. By default RPCore hides none of them (every `default` is `nil` in `shared/config.lua`) and the web vitals panel is off (`webFallback.vitals = false`); the native bars come from the redscript pack. It also requests `ui.vanilla.map` to create native map pins and `map.read`/`map.control` for its native-map Locations tab. Approve those permissions in Warden. Its HUD surface uses z-index 800, above the OPX HUD at 700 and below RPCore's crosshair at 850.
 
 Open the native map with `/rpcore.map` or the rebindable **M** default; RPCore selects its Locations tab after opening. **Escape** closes the native map; controller **B** opens the map when closed and the native map handles B after opening. The built-in Map tab uses Cyberpunk's map renderer and displays saved RPCore pins; the Locations tab lists saved places and offers native GPS routing. The in-game minimap is also Cyberpunk's native renderer and displays these same native pins. `/rpcore.map.minimap` reports visibility and perspective; `/rpcore.map.minimap on` enables the player's Minimap option in Open77 settings at **Settings → Gameplay → HUD Elements → Minimap** and checks the result. This is a player setting, not a server-wide map switch. Admins can toggle the draggable **Edit pins** panel from the Locations tab to save a named pin at their current position, choose its native symbol, and persist it through EventCore. Only EventCore/Warden admins receive permission to use the editor; saved places are shared. The symbol picker currently offers Objective, Tech, Danger, and Vehicle. The native minimap stays at the game's fixed HUD position; Open77 does not expose a supported API to relocate or embed its texture into a bottom-left RPCore panel, so RPCore does not draw a substitute map.
 
@@ -39,7 +39,7 @@ RPCore requires EventCore and discovers its runtime/service catalog through docu
 
 ## Important limits
 
-- This is a development build, not a public release. The test server has the prior HUD perspective version; this revision's simpler tilt on the vitals bars has not been deployed or reviewed in game. HUD state delivery, Warden permissions, resource activation, key rebinding, and z-order still need verification.
+- This is a development build, not a public release. The operator tested it in game on 2026-10-11 and reported only the known issues below; anything not listed there has not been separately verified.
 - Only platform-backed identity, life state, and vitals are currently published. Providers for economy, jobs, needs, humanity, weather, and character state remain future work.
 - RPCore activity history remains in memory in this beta. EventCore currently persists shared RPCore map locations; durable player inventory and outfit storage remain outside this package.
 - Defaults are configurable and can be changed in RPCore controls or Open77 key-binding settings. F12 is also commonly used by platform software; rebind it if it conflicts on your setup.
@@ -51,4 +51,14 @@ RPCore requires EventCore and discovers its runtime/service catalog through docu
 - `web/`: RPCore activity HUD plus the RPCore HUD, images, fonts, weapon, crosshair, and blood layers.
 - `install/server-load-order.jsonc`: small load-order merge example.
 - `docs/CONSUMING.md`: RPCore activity API for other resources.
+- `docs/HUD-ELEMENTS.md`: HUD element registry, EventCore control exports, Blackwall/relic handles.
+- `docs/survival-vitals.md`: survival vitals and the cyberpsychosis (`sanity`) meter.
 - `docs/survival-vitals.md`: provider API for hunger, thirst, and sanity bars.
+
+## Known issues
+
+Operator-reported, in-game tested 2026-10-11. These are known issues, not configuration mistakes. Do not add hide/show workarounds or change `server.jsonc` to chase them without the operator asking.
+
+- Vanilla health and "lifelihood" bars do not display properly.
+- Wider screen aspect ratios display incorrectly.
+- No other issues were reported in that test.

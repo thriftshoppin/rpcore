@@ -1,3 +1,5 @@
+> **Superseded for new code by `NATIVE-HUD.md`** (`SetVital`, `SetPsychosis`, ...). `sanity` below is a deprecated alias of `psychosis`; writes now require `allowedCallers`.
+
 # RPCore survival vitals provider
 
 RPCore renders optional hunger, thirst, and sanity bars but does not own their

@@ -6,8 +6,10 @@ local CHANNEL = "rpcore.hud"
 local SCHEMA_VERSION = 1
 local SAMPLE_MS = 1000
 local lastPublishError = nil
-local survivalByPlayer = {}
 local publish
+-- Hunger, thirst and the cyberpsychosis meter (values, tiers, overrides, expiry) live in
+-- server/vitals.lua; this file only adds them to the published snapshot.
+local Vitals = RPCore.Vitals.Server
 
 local function playerId(value)
     local id = tonumber(value)
@@ -48,59 +50,85 @@ local function buildView(id)
     end
     local stats = statsFor(id)
     if not stats then return nil end
+    local vitals = Vitals.View(id)
+    -- `survival` / `psychosis` below are the LEGACY shapes, kept only so the optional
+    -- web fallback page keeps working. The native bars read `vitals`.
+    local survival = {}
+    if vitals.hunger.hasData then survival.hunger, survival.hungerMax = vitals.hunger.value, vitals.hunger.max end
+    if vitals.thirst.hasData then survival.thirst, survival.thirstMax = vitals.thirst.value, vitals.thirst.max end
+    if vitals.psychosis.hasData then survival.sanity, survival.sanityMax = vitals.psychosis.value, vitals.psychosis.max end
     return {
         shown = life.phase == "alive" or life.phase == "recovering",
         down = life.phase == "dead" or life.phase == "downed",
         loggedIn = true,
         name = name,
         stats = stats,
-        survival = survivalByPlayer[id] or {},
+        vitals = vitals,
+        survival = survival,
+        psychosis = RPCore.Vitals.LegacyFx(vitals.psychosis.tier),
         inVehicle = false,
     }
 end
 
+-- ── legacy provider API ─────────────────────────────────────────────────────
+-- SetSurvivalVitals / ClearSurvivalVitals predate the native bars. They now delegate to
+-- server/vitals.lua, so there is one source of truth. `sanity` is a DEPRECATED alias for
+-- `psychosis` (same direction, never inverted). Writes are now guarded by
+-- Config.exports.allowedCallers like every other write handle (they were open before).
 local function setSurvivalVitals(rawId, values)
+    if type(values) ~= "table" then return nil, "invalid_vitals" end
     local id = playerId(rawId)
-    if not id then return false, "invalid_player_id" end
-    if type(values) ~= "table" then return false, "invalid_vitals" end
-
-    local current = {}
-    for key, value in pairs(survivalByPlayer[id] or {}) do current[key] = value end
-    local changed = false
+    if not id then return nil, "invalid_player_id" end
+    local any = false
+    -- Validate everything first so a bad field cannot half-apply the update.
     for _, key in ipairs({ "hunger", "thirst", "sanity" }) do
-        local value = values[key]
-        local maximum = values[key .. "Max"]
-        if value ~= nil then
-            value = finite(value)
-            maximum = maximum == nil and (current[key .. "Max"] or 100) or finite(maximum)
-            if not value or not maximum or maximum <= 0 then return false, "invalid_" .. key end
-            current[key] = math.max(0, math.min(maximum, value))
-            current[key .. "Max"] = maximum
-            changed = true
-        elseif maximum ~= nil then
+        local value, maximum = values[key], values[key .. "Max"]
+        if value ~= nil and not finite(value) then return nil, "invalid_" .. key end
+        if maximum ~= nil then
             maximum = finite(maximum)
-            if not maximum or maximum <= 0 then return false, "invalid_" .. key .. "_max" end
-            current[key .. "Max"] = maximum
-            if current[key] ~= nil then current[key] = math.min(current[key], maximum) end
-            changed = true
+            if not maximum or maximum <= 0 then return nil, "invalid_" .. key .. "_max" end
+        end
+        if value ~= nil then any = true end
+    end
+    if not any then return nil, "no_vitals_provided" end
+    for _, key in ipairs({ "hunger", "thirst", "sanity" }) do
+        if values[key] ~= nil then
+            local ok, reason = Vitals.SetVital(id, key, values[key], values[key .. "Max"])
+            if not ok then return nil, reason end
         end
     end
-    if not changed then return false, "no_vitals_provided" end
-    survivalByPlayer[id] = current
-    publish(id)
     return true
 end
 
 RPCore.Hud = RPCore.Hud or {}
 RPCore.Hud.SetSurvivalVitals = setSurvivalVitals
-exports("SetSurvivalVitals", setSurvivalVitals)
-exports("ClearSurvivalVitals", function(rawId)
-    local id = playerId(rawId)
-    if not id then return false, "invalid_player_id" end
-    survivalByPlayer[id] = nil
-    publish(id)
-    return true
+exports("SetSurvivalVitals", function(player, values)
+    local caller, why = RPCore.GuardExport()
+    if not caller then return nil, why end
+    return setSurvivalVitals(player, values)
 end)
+exports("ClearSurvivalVitals", function(player)
+    local caller, why = RPCore.GuardExport()
+    if not caller then return nil, why end
+    return Vitals.Clear(player)
+end)
+
+-- The Blackwall / relic LEVEL handles are retired: effects now follow the cyberpsychosis
+-- tier (ForceTier / ReleaseTier / SetPsychosis). They refuse loudly instead of silently
+-- doing nothing, so a stale caller finds out.
+for _, name in ipairs({ "SetBlackwall", "SetRelicMalfunction", "GetCyberpsychosisFx" }) do
+    exports(name, function() return nil, "deprecated_use_ForceTier" end)
+end
+exports("ClearCyberpsychosisFx", function(player)
+    local caller, why = RPCore.GuardExport()
+    if not caller then return nil, why end
+    return Vitals.ReleaseTier(player, "all")
+end)
+
+-- Vitals writes publish through a host-managed thread: exports must not yield.
+Vitals.OnChange = function(id)
+    RPCore.Async("HUD vitals publish", function() publish(id) end)
+end
 
 publish = function(rawId)
     local id = playerId(rawId)
@@ -126,13 +154,12 @@ end
 
 AddEventHandler("open77:playerStatsChanged", function(id) publish(id or source) end)
 AddEventHandler("open77:playerDied", function(id) publish(id) end)
-AddEventHandler("playerDropped", function()
-    local id = playerId(source)
-    if id then survivalByPlayer[id] = nil end
-end)
+-- (server/vitals.lua clears a dropped player's vitals itself.)
 
 CreateThread(function()
     while true do
+        -- Expire overrides first: a crashed mission must not leave a tier forced.
+        Vitals.Tick()
         for _, id in ipairs(allPlayers()) do publish(id) end
         Wait(SAMPLE_MS)
     end

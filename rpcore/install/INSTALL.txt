@@ -1,0 +1,13 @@
+RPCore 0.4.0 - SERVER INSTALL
+1. Copy this rpcore/ folder into the server's resources/ folder (load it once; do not nest it inside eventcore/).
+2. Merge server.jsonc.snippet into server.jsonc: load eventcore, open77_chat and rpcore (eventcore first);
+   requiredMods enabled.
+3. Freeroam servers: either drop in the patched freeroam/ folder shipped beside this package, or apply disable-freeroam-hud.patch (and optionally disable-freeroam-killfeed.patch) from the
+   server root. Freeroam is the only stock resource that respawns players, so keep it loaded.
+4. In Warden: approve rpcore's permissions, including rtti.native.
+5. Restart the server. Log should show: Required mods: N declared, digest=...
+6. Players connect through the OPEN//77 launcher; it installs the client mod automatically
+   (hosted by your server from resources/rpcore/dist/).
+7. Tune live in Warden -> Tuning (tier bounds, relic, override lifetimes, master switch).
+Details: docs/SERVER-SETUP.md and docs/NATIVE-HUD.md
+Known issues (operator-reported): vanilla health and "lifelihood" bars not displaying properly; wider screen aspect ratios.

@@ -1,30 +1,99 @@
+diff --git a/resources/gamemodes/freeroam/client/main.lua b/resources/gamemodes/freeroam/client/main.lua
+index 694b418..acfef99 100644
+--- a/resources/gamemodes/freeroam/client/main.lua
++++ b/resources/gamemodes/freeroam/client/main.lua
+@@ -654,43 +654,45 @@ AddEventHandler("onClientResourceStart", function(name)
+         end)
+     end
+ 
+-    local hudError
+-    hud, hudError = WebUI.create({
+-        entry = "web/hud.html",
+-        layer = "hud",
+-        width = 1920,
+-        height = 1080,
+-        fps = 60,
+-        zIndex = 620,
+-        transparent = true,
+-        visible = true,
+-    })
+-    if hud == nil then
+-        -- The vanilla readouts stay visible if the replacement cannot paint.
+-        print("[freeroam] HUD WebUI failed; vanilla HUD retained: " .. tostring(hudError))
+-    else
+-        hud:on("freeroam:hud:ready", function()
+-            hudReady = true
+-            sampleStats()
+-            sampleVehicle()
+-            activateCustomHudIfReady()
+-            pushHud()
+-            if not hudView.ready then
+-                print("[freeroam] design-system HUD ready; waiting for stats before hiding stock readouts")
+-            end
+-        end)
+-
+-        CreateThread(function()
+-            while hud ~= nil do
++    if not (Config.hud and Config.hud.enabled == false) then
++        local hudError
++        hud, hudError = WebUI.create({
++            entry = "web/hud.html",
++            layer = "hud",
++            width = 1920,
++            height = 1080,
++            fps = 60,
++            zIndex = 620,
++            transparent = true,
++            visible = true,
++        })
++        if hud == nil then
++            -- The vanilla readouts stay visible if the replacement cannot paint.
++            print("[freeroam] HUD WebUI failed; vanilla HUD retained: " .. tostring(hudError))
++        else
++            hud:on("freeroam:hud:ready", function()
++                hudReady = true
+                 sampleStats()
+                 sampleVehicle()
+                 activateCustomHudIfReady()
+-                requestWeaponSnapshot()
+                 pushHud()
+-                Wait(50)
+-            end
+-        end)
+-    end
++                if not hudView.ready then
++                    print("[freeroam] design-system HUD ready; waiting for stats before hiding stock readouts")
++                end
++            end)
++
++            CreateThread(function()
++                while hud ~= nil do
++                    sampleStats()
++                    sampleVehicle()
++                    activateCustomHudIfReady()
++                    requestWeaponSnapshot()
++                    pushHud()
++                    Wait(50)
++                end
++            end)
++        end
++    end -- RPCore supplies the player HUD
+ 
+     local scoreboardError
+     scoreboard, scoreboardError = WebUI.create({
 diff --git a/resources/gamemodes/freeroam/shared/config.lua b/resources/gamemodes/freeroam/shared/config.lua
+index adb2127..1b1a522 100644
 --- a/resources/gamemodes/freeroam/shared/config.lua
 +++ b/resources/gamemodes/freeroam/shared/config.lua
-@@ -5,4 +5,6 @@
+@@ -5,6 +5,11 @@
+ -- docs/research); operators are expected to replace them with their own spots.
+ 
  FreeroamConfig = {
-+    hud = { enabled = false }, -- RPCore owns the replacement player HUD on this server.
++    -- RPCore owns the player HUD on this server. false = freeroam creates no HUD
++    -- page and never hides the vanilla health/stamina/weapon/speedometer widgets.
++    -- Menu, scoreboard, killfeed, race, pvp and all gameplay stay active.
++    hud = { enabled = false },
 +
      -- Chat message sent when a player announces freeroam:ready.
      welcome = {
          enabled = true,
-diff --git a/resources/gamemodes/freeroam/client/main.lua b/resources/gamemodes/freeroam/client/main.lua
---- a/resources/gamemodes/freeroam/client/main.lua
-+++ b/resources/gamemodes/freeroam/client/main.lua
-@@ -654,5 +654,6 @@
- 
--    local hudError
-+    if not (Config.hud and Config.hud.enabled == false) then
-+    local hudError
-     hud, hudError = WebUI.create({
-         entry = "web/hud.html",
-         layer = "hud",
-@@ -684,6 +685,8 @@
-         end)
-     end
- 
-+    end -- RPCore supplies the player HUD; leave freeroam gameplay and scoreboard active.
-+
-     local scoreboardError
-     scoreboard, scoreboardError = WebUI.create({
-         entry = "web/scoreboard.html",

@@ -53,6 +53,22 @@ local function publishAll()
     for _, surface in pairs(surfaces) do publish(surface) end
 end
 
+-- Server-driven element overrides (visible / opacity / placement), delivered by
+-- client/vanilla.lua. Each page applies only the elements it contains.
+local control = {}
+
+local function sendControl(surface)
+    if surface and surface.page then
+        surface.page:send("rpcore:element:control", { elements = control })
+    end
+end
+
+--- Replace the override table and push it to every HUD page.
+function Layout.SetControl(elements)
+    control = type(elements) == "table" and elements or {}
+    for _, surface in pairs(surfaces) do sendControl(surface) end
+end
+
 local function focus(id)
     local target = surfaces[id]
     if not enabled or not target or not target.page then return false end
@@ -101,7 +117,7 @@ function Layout.RegisterSurface(id, page, elementIds)
         if RPCore.CloseSettings then RPCore.CloseSettings() end
         Layout.Toggle()
     end)
-    page:on("rpcore:layout:ready", function() publish(entry) end)
+    page:on("rpcore:layout:ready", function() publish(entry); sendControl(entry) end)
     page:on("rpcore:layout:reset", function(payload)
         local elementId = type(payload) == "table" and tostring(payload.element or "") or ""
         if elementId ~= "" and not entry.allowed[elementId] then return end
@@ -111,6 +127,7 @@ function Layout.RegisterSurface(id, page, elementIds)
         publishAll()
     end)
     publish(entry)
+    sendControl(entry)
     if enabled and not focused and id == "vitals" then focus(id) end
 end
 

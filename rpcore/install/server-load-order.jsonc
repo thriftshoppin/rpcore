@@ -1,11 +1,13 @@
 // Merge these edits into the existing resources.load array in server.jsonc.
 // Keep EventCore before RPCore; RPCore publishes and consumes its HUD state feed.
+// EventCore chat needs open77_chat loaded. Load rpcore once.
 // Remove any other resource that draws duplicate player HUD widgets.
 // Keep unrelated gameplay resources enabled when they provide needed services.
 {
   "resources": {
     "load": [
       "eventcore",
+      "open77_chat",
       "rpcore"
     ]
   }

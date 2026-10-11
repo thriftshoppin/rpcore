@@ -1,0 +1,15 @@
+diff --git a/resources/gamemodes/freeroam/shared/config.lua b/resources/gamemodes/freeroam/shared/config.lua
+index adb2127..cef45a2 100644
+--- a/resources/gamemodes/freeroam/shared/config.lua
++++ b/resources/gamemodes/freeroam/shared/config.lua
+@@ -214,7 +214,9 @@ FreeroamConfig = {
+         -- Passive regeneration in health points per second (0 disables).
+         regenPerSecond = 0.0,
+         killfeed = {
+-            enabled = true,
++            -- false: no kill-feed entries and no "X eliminated Y" chat line. Hitmarker and
++            -- damage flash are unaffected. Off on this RP server.
++            enabled = false,
+             -- Entries visible at once and per-entry lifetime.
+             maxEntries = 5,
+             entryTtlMs = 6000,

@@ -59,6 +59,10 @@ local function guard()
     return caller
 end
 
+--- Shared by server/hud_state.lua and server/elements.lua so every write export
+--- obeys the same Config.exports.allowedCallers rule.
+RPCore.GuardExport = guard
+
 local function online(player)
     local players = Open77 and Open77.players
     if players and type(players.name) == "function" then
