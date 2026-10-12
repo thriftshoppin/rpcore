@@ -1,6 +1,16 @@
 # Changelog
 
 ## Unreleased
+- Docs: recorded the licensing plan in `AGENTS.md` (all rights reserved while in development; MIT from the full release onward). No license file was added.
+- Docs: the Freeroam HUD and kill-feed changes are also distributed as a complete patched `freeroam/` resource folder, packaged beside this repository (not inside it).
+- Changed: `webFallback.vitals` now defaults to `false`, matching the file's own "ALL OFF" comment. The web vitals panel no longer draws by default and the base game HUD plus the native redscript bars are used.
+- Docs: corrected the README claim that RPCore hides the native health, stamina and weapon widgets. By default it hides none (all `default` values are `nil`).
+- Docs: install guidance now covers loading `open77_chat`, loading `rpcore` once, and the fact that Freeroam is the only stock resource that respawns players.
+- Added `install/disable-freeroam-killfeed.patch` and regenerated `install/disable-freeroam-hud.patch` against the current Freeroam 0.7.4 sources (the old patch's line numbers did not match). Moved `INSTALL.txt` and `server.jsonc.snippet` into `install/`.
+- Docs: recorded the operator-reported known issues from the 2026-10-11 in-game test (vanilla health and "lifelihood" bars not displaying properly; wider screen aspect ratios).
+- Docs: noted that `tools/build-client-pack.py` and the `redscript/` source are not shipped in this package.
+- Note: the manifest declares 0.4.0, but this changelog has no entries for 0.3.3 through 0.4.0 (native HUD pack, vitals, HUD element registry). See `docs/NATIVE-HUD.md`, `docs/HUD-ELEMENTS.md` and `docs/survival-vitals.md` for what shipped.
+- Removed RPCore controller B map opening so B stays available for game/menu close and vehicle-exit behavior; use M or /rpcore.map to open it.
 - Added `/rpcore.map.minimap on` to enable the player's native minimap setting and report its effective HUD visibility and active perspective.
 - Set the rebindable map default to M and added `/rpcore.map.minimap` visibility diagnostics for the native game minimap.
 - Clarified that the game renders the map and native pins; RPCore only adds its native pins and Locations tab.
@@ -8,7 +18,7 @@
 
 ## 0.3.2
 - Added a rebindable X default and `/rpcore.map` toggle that opens the native City Map and selects RPCore Locations.
-- Added controller B to open the native map when closed; the native map retains B for its own back/close behavior.
+
 - Reported map-open failures and tracked native map ownership so RPCore only closes sessions it opened.
 
 ## 0.3.1
