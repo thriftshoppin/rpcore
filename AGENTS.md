@@ -7,7 +7,14 @@ Last verified: 2026-10-11, after an in-game test by the operator. Treat this fil
 - Manifest version 0.4.0; requires `eventcore >=0.6.1` (EventCore 0.7.0 is what is installed). Load `eventcore` first and `rpcore` once.
 - RPCore owns the player HUD. EventCore owns HUD writes (`server/hud.lua` in the EventCore repo); RPCore only accepts them from EventCore.
 - HUD defaults: every native widget `default` is `nil` (RPCore hides nothing), all `webFallback` surfaces are `false`, and the hunger/thirst/sanity bars are drawn natively by the redscript pack in `dist/rpcore-hud.zip`.
-- The redscript source and `tools/build-client-pack.py` are NOT in this repository. Do not assume the pack can be rebuilt here.
+- The required client source is in the repository-root `rpcore-hud/r6/scripts/RPCore/` folder. The server-delivered copy is `rpcore/dist/rpcore-hud.zip`; keep the source and package aligned and update both SHA-256 files after rebuilding. This repository does not include `tools/build-client-pack.py`.
+
+## Repository layout
+
+- Root `README.md`, `AGENTS.md`, `CHECKPOINT.md`, and `CHANGELOG.md` describe the combined project.
+- `rpcore/` is the installable Open77 server resource and includes its own README and checkpoint.
+- `rpcore-hud/` is the required client redscript patch source and includes its own README and checkpoint.
+- Install the server resource and required client mod together; the top-level HUD source folder is for review and rebuilding, while `rpcore/dist/rpcore-hud.zip` is the launcher-delivered package.
 
 ## Server facts (confirmed against a real `server.jsonc`)
 

@@ -1,37 +1,22 @@
-# RPCore 0.3.2 migration checkpoint — development build
+# RPCore 0.4.0 — project checkpoint
 
-## Current status
+## Status
 
-- The package includes compact vitals, provider-backed hunger/thirst/sanity rows, and adjustable HUD panels.
-- RPCore 0.3.2 / EventCore 0.6.5 are the current local revisions; verify chat and map behavior in game before a remote release.
-- Native-map tab activation, EventCore chat input/command forwarding, storage availability, and HUD behavior still require in-game verification.
+This package is in development and project playtesting is incomplete. It is not ready for general release. Treat the server resource and required client mod as a combined integration; testing one without the other does not verify the native HUD path.
 
-## Implemented
+## Included components
 
-- Compact individual glass bars and provider interfaces for survival values.
-- Cyberpsychosis/Blackwall treatment on the sanity bar.
-- Per-player drag editor for RPCore panels, alongside activity, weapon, crosshair, damage overlay, and controls surfaces.
-- HUD snapshots and activity presentation routed through EventCore.
-- RPCore restricted server commands consult EventCore's trusted admin check; Warden remains authoritative for global roles.
-- RPCore adds a saved-locations tab to Open77's native City Map and creates persistent, routable native blips from EventCore storage.
-- `/rpcore.map` and the rebindable M action open the native map and select Locations; Esc closes it, and controller B opens it when closed.
-- RPCore uses the game-rendered City Map/minimap and native pins; `/rpcore.map.minimap` checks for another resource hiding the minimap.
-- EventCore provides a skinnable chat panel and routes slash commands through Open77's existing client/server command path.
-- Server-specific logo/footer branding removed and duplicate Freeroam HUD suppression documented.
+- `rpcore/`: Open77 server resource with EventCore integration, provider exports, native HUD snapshots/control, roleplay UI, and the required-mod preload declaration.
+- `rpcore-hud/`: source for the required redscript client patch, with the original `r6/scripts/RPCore/` hierarchy and the supplied SHA-256 file.
+- The server resource includes its launcher-delivered client package at `rpcore/dist/rpcore-hud.zip` and matching `rpcore/dist/rpcore-hud.zip.sha256`.
 
-## Remaining verification and development work
+## Integration status
 
-- Confirm perspective, size, color, and panel placement in game.
-- Verify EventCore delivery, Warden permissions, key rebinding, and provider updates.
-- Remove `open77_chat` from the server resource list when adopting EventCore's replacement UI and T binding; leave other resources and their command registrations enabled.
-- Enable database persistence and approve EventCore/RPCore map permissions before validating saved locations and routing.
-- Connect an authoritative needs provider; RPCore intentionally does not simulate hunger, thirst, or sanity.
-- Add providers for economy, jobs, humanity, weather, character login, and spawn behavior.
-- Continue admin action migration with authorization checks intact.
+- EventCore-fed HUD data can be carried by RPCore toward the client's native HUD bridge.
+- The redscript patch is the client-side handoff to the game's HUD controller and `inkWidget` system; those widgets use the native game HUD path instead of a WebView surface.
+- The current EventCore build does not yet orchestrate all planned damage, Blackwall/netrunning, or task-quality scenarios. RPCore does not invent or trigger those events.
+- Project playtesting is not complete. See the component-specific checkpoints for known display and integration limits.
 
-## Artifacts
+## Before release
 
-- Working resource: `rpcore/`.
-- Install/load-order example: `rpcore/install/server-load-order.jsonc`.
-- HUD provider contract: `rpcore/docs/survival-vitals.md`.
-- Chat migration guide: `../eventcore/docs/chat.md`.
+Review the exact required-mod hash in Warden, approve the declared RPCore permissions, verify the combined launcher install, and complete playtesting for supported game/client configurations. Re-review any rebuilt client package whose hash changes.

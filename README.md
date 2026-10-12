@@ -1,21 +1,28 @@
-# RPCore
+# RPCore 0.4.0
 
-**RPCore 0.3.2 development build — EventCore-ready roleplay HUD and activity framework for Open77.**
+**Development/playtest build. Playtesting is incomplete; this is not a finished general-release package.**
 
-RPCore is the home for the Open77 player-facing HUD and RP activity interface; EventCore owns the state transport contract. The project is intended to remain open source and free for anyone to use and modify. This is a development build; publication terms and licensing will be stated with the public release.
+<u>**You must own a valid copy of Cyberpunk 2077 and Phantom Liberty to download and use these modifications.**</u> See the required HUD mod's [project use terms](rpcore-hud/README.md#project-use-terms).
+
+RPCore 0.4.0 is delivered as two coordinated parts: the Open77 server resource in [`rpcore/`](rpcore/) and the client-side native HUD bridge source in [`rpcore-hud/`](rpcore-hud/). They are intended to be installed together. EventCore carries server state to RPCore; the required redscript patch bridges RPCore's client HUD data into Cyberpunk's native client HUD/`inkWidget` path. The HUD bars use native-game presentation rather than a WebView HUD.
+
+RPCore provides the server side: trusted provider exports, validation, EventCore state delivery, HUD controls and roleplay interfaces. The required mod provides the client side of the HUD data path. It does not decide when RP events happen. EventCore does not yet include the complete event logic for planned damage red-screening, Blackwall netrunning interference, or failed/imperfect-task outcomes.
 
 ## Repository layout
 
-- [`rpcore/`](rpcore/) — installable Open77 resource, including its manifest, client/server scripts, HUD assets, and install notes.
-- [`RPCORE_HUD_MIGRATION_PLAN.md`](RPCORE_HUD_MIGRATION_PLAN.md) — staged architecture and follow-up work.
-- [`CHECKPOINT.md`](CHECKPOINT.md) — implemented scope and items needing in-game verification.
+- [`README.md`](README.md) — project overview and combined install guide.
+- [`AGENTS.md`](AGENTS.md) — contributor and repository structure notes.
+- [`CHECKPOINT.md`](CHECKPOINT.md) — overall development and integration status.
+- [`CHANGELOG.md`](CHANGELOG.md) — RPCore 0.4.0 package changes and current limits.
+- [`rpcore/`](rpcore/) — installable Open77 server resource. Its `dist/rpcore-hud.zip` is the required client mod delivered by the launcher.
+- [`rpcore-hud/`](rpcore-hud/) — extracted redscript source for the required mod, preserving the `r6/scripts/RPCore/` path, plus checksum and mod-specific docs.
 
-## Install
+## Install both parts
 
-Copy the `rpcore/` folder into the server's `resources/` directory. Install EventCore 0.6.1 or newer, then load `eventcore` before `rpcore`. Add `rpcore` to EventCore `server/whitelist.lua`. Remove any competing HUD resource to avoid duplicate widgets. See [`rpcore/README.md`](rpcore/README.md) and [`rpcore/install/server-load-order.jsonc`](rpcore/install/server-load-order.jsonc) for details.
+1. Install EventCore **0.6.1 or newer** and `open77_chat`. Add `rpcore` to EventCore's `server/whitelist.lua`.
+2. Copy the `rpcore/` directory into the Open77 server's `resources/` folder. In `server.jsonc`, load `eventcore`, `open77_chat`, then `rpcore`; enable `requiredMods`.
+3. In Warden, review/approve the exact hash in `rpcore/dist/rpcore-hud.zip.sha256` and approve RPCore's requested permissions, especially `rtti.native`. If the required-mod archive is rebuilt, its hash changes and must be reviewed again. `requiredMods.unsecured: true` is an alternative only when intentionally allowing unsecured required mods.
+4. Players connect through the OPEN//77 launcher. It installs the required `rpcore-hud.zip` before the game starts. The top-level `rpcore-hud/` directory is the source for review and rebuilding; it is not a second Open77 server resource to copy into `resources/`.
+5. Check `/rpcore.status` on the server and `/rpcore.hud.native` plus `/rpcore.hud.native.ping` on one test client before wider playtesting.
 
-The player HUD, weapon card, third-person crosshair, blood overlay, RPCore activity UI, persistent native map locations, and a Locations tab in the native City Map are included. Run `/rpcore.map` or press the rebindable **M** default to open the game's native map on RPCore's Locations tab; controller **B** opens it when closed, while the native map handles B after opening. The native Cyberpunk map and minimap render the world and RPCore's game-native pins. `/rpcore.map.minimap` releases RPCore's hide claim and reports whether another resource is still hiding the native minimap. Providers for economy, jobs, needs, humanity, weather, and spawn behavior remain future work. EventCore owns the admin entry point; Warden remains authoritative for global roles and command grants.
-
-## Release status
-
-This is a development package. Map persistence, provider delivery, Warden permissions, resource activation, key rebinding, and HUD behavior need verification in game before release. Open77 exposes access to the native Cyberpunk map/minimap and resource-owned native pins, but no supported minimap reposition or texture API. RPCore leaves the map rendering to the game.
+For component-specific installation, feature details, and limitations, see [`rpcore/README.md`](rpcore/README.md) and [`rpcore-hud/README.md`](rpcore-hud/README.md).

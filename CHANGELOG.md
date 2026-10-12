@@ -1,70 +1,41 @@
-# Changelog
+# RPCore 0.4.0 Changelog
 
-## Unreleased
-- Docs: recorded the licensing plan in `AGENTS.md` (all rights reserved while in development; MIT from the full release onward). No license file was added.
-- Docs: the Freeroam HUD and kill-feed changes are also distributed as a complete patched `freeroam/` resource folder, packaged beside this repository (not inside it).
-- Changed: `webFallback.vitals` now defaults to `false`, matching the file's own "ALL OFF" comment. The web vitals panel no longer draws by default and the base game HUD plus the native redscript bars are used.
-- Docs: corrected the README claim that RPCore hides the native health, stamina and weapon widgets. By default it hides none (all `default` values are `nil`).
-- Docs: install guidance now covers loading `open77_chat`, loading `rpcore` once, and the fact that Freeroam is the only stock resource that respawns players.
-- Added `install/disable-freeroam-killfeed.patch` and regenerated `install/disable-freeroam-hud.patch` against the current Freeroam 0.7.4 sources (the old patch's line numbers did not match). Moved `INSTALL.txt` and `server.jsonc.snippet` into `install/`.
-- Docs: recorded the operator-reported known issues from the 2026-10-11 in-game test (vanilla health and "lifelihood" bars not displaying properly; wider screen aspect ratios).
-- Docs: noted that `tools/build-client-pack.py` and the `redscript/` source are not shipped in this package.
-- Note: the manifest declares 0.4.0, but this changelog has no entries for 0.3.3 through 0.4.0 (native HUD pack, vitals, HUD element registry). See `docs/NATIVE-HUD.md`, `docs/HUD-ELEMENTS.md` and `docs/survival-vitals.md` for what shipped.
-- Removed RPCore controller B map opening so B stays available for game/menu close and vehicle-exit behavior; use M or /rpcore.map to open it.
-- Added `/rpcore.map.minimap on` to enable the player's native minimap setting and report its effective HUD visibility and active perspective.
-- Set the rebindable map default to M and added `/rpcore.map.minimap` visibility diagnostics for the native game minimap.
-- Clarified that the game renders the map and native pins; RPCore only adds its native pins and Locations tab.
-- Aligned the runtime-reported RPCore version with the resource manifest.
+## 0.4.0 — native HUD and dynamic controls (development/playtest build)
+
+Playtesting is incomplete; this build is not ready for general release. The notes below describe features present in the supplied 0.4.0 package and distinguish them from planned integrations.
+
+### Added
+
+- Added a required redscript client patch that carries EventCore-fed hunger, thirst, and cyberpsychosis data into the client's native HUD/`inkWidget` path instead of rendering those bars in a WebView.
+- Documented the required mod's job: bridge EventCore-fed RPCore HUD state from the client Lua/RTTI path into Cyberpunk's native HUD controller and `inkWidget` system; event rules remain server/provider responsibilities.
+- Added the `rtti.native` permission declaration and `/rpcore.hud.native` / `/rpcore.hud.native.ping` diagnostics for the Lua-to-redscript bridge.
+- Added EventCore-fed vitals and psychosis state, including tier calculation, temporary tier/level overrides, timed visibility controls, expiry behavior, and provider-facing exports.
+- Added an EventCore client-state channel for per-player HUD element visibility, opacity, and supported panel placement controls.
+- Added Warden live tunables for native HUD enablement, psychosis tier thresholds and hysteresis, relic-effect settings, and override lifetimes.
+- Added a launcher-delivered `preload_mod` client package with a SHA-256 file for Warden review; included server configuration guidance for required mods.
+- Added a Freeroam HUD patch to prevent duplicate HUD behavior and an optional Freeroam kill-feed patch; clarified respawn-resource requirements.
+- Retained the existing roleplay activity HUD, custom panels, journal, weapon card, crosshair, blood overlay, and native map locations/pins.
+
+### Known limits and work still in progress
+
+- RPCore supplies HUD display and control; it does not orchestrate RP events. The current EventCore build does not yet contain the complete logic to trigger damage red-screening, Blackwall static during netrunning, or consequences for failed or imperfectly completed tasks.
+- The native meter is `psychosis`; `sanity` remains a deprecated compatibility alias. The relic effect's player-facing name is under revision; the current implementation targets a vanilla Johnny-sickness effect that Open77 multiplayer policy may suppress.
+- The scripted bars cannot create a Blackwall ink effect at runtime, so that visual effect may be absent until a compatible widget/effect is available.
+- Project playtesting has not completed. The operator-reported issues are vanilla health/lifelihood bars not displaying properly and incorrect wider-aspect-ratio layout. See `rpcore/docs/NATIVE-HUD.md` for other integration caveats.
 
 ## 0.3.2
-- Added a rebindable X default and `/rpcore.map` toggle that opens the native City Map and selects RPCore Locations.
 
+- Added a rebindable map key and `/rpcore.map` to open the native City Map and select RPCore Locations.
 - Reported map-open failures and tracked native map ownership so RPCore only closes sessions it opened.
+- Added EventCore-backed persistent native map locations, admin pin editing, and the Locations tab.
 
 ## 0.3.1
-- `/rpcore.map` now opens the native City Map directly to RPCore's Locations tab when available.
-- Added the native map ready handshake and diagnostics for map open and tab failures.
+
+- Added a native map ready handshake and diagnostics for map open and tab failures.
 
 ## 0.3.0 — native map integration
 
-- Added an RPCore Locations tab to Open77's native City Map, using the game's actual map surface and saved RPCore locations.
+- Added an RPCore Locations tab to Open77's native City Map, using the game's map surface and saved RPCore locations.
 - Added route actions for saved places and `/rpcore.map` to open the native map.
-- Added an admin-only draggable map pin editor; admins can name pins, choose a native symbol, and save the current position.
-- Checked pin creation against EventCore's Warden-backed admin status and stored shared pins through EventCore.
-- Added explicit storage-error feedback when EventCore persistence or database access is unavailable.
-- Added the Open77 `map.read` and `map.control` permissions required by native map tabs.
-
-## 0.2.5 — map locations
-
-- Added persistent, routable native map locations stored through EventCore.
-- Added Warden-checked commands to add the current position, list locations, and remove locations.
-- Required EventCore 0.5.0 storage and Open77's native map-pin permission.
-
-## 0.2.4 — test build
-
-- Integrated the player-facing HUD into RPCore and routed server-owned state through EventCore.
-- Added provider handlers so other mods can supply survival values and extend the HUD without modifying RPCore.
-
-## 0.2.3
-
-- Added EventCore/Warden global-admin checks to RPCore's restricted server commands.
-- Updated the EventCore minimum version for the trusted `IsAdmin` API.
-
-## 0.2.2
-
-- Restored RPCore health and vitals panels hidden by a legacy test-server CSS rule.
-- Removed server branding from the HUD footer and obsolete logo UI messages.
-
-## 0.2.1
-
-- Raised the RPCore HUD WebUI above the OPX HUD layer while keeping the custom crosshair above it.
-- Declared `ui.vanilla.hud` and hid the native health, stamina, and weapon widgets replaced by RPCore.
-- Corrected admin ownership references: Warden/Open77 ACL remains authoritative, and the bundled `open77_admin` resource owns its panel and commands.
-
-## 0.2.0-beta.2
-
-- Added a server-side HUD snapshot publisher using Open77 player identity, life state, and vitals.
-- Routed HUD snapshots through EventCore's versioned `rpcore.hud` client-state feed.
-- Removed the synchronous client-state export read and its HUD load-order requirement.
-- Renamed the HUD entry scripts and moved the shared HUD state API under `RPCore.Hud`.
-- Recorded outstanding domain-provider and spawn work; admin controls remain a separate security-reviewed migration.
+- Added an admin-only draggable map pin editor and EventCore-backed shared storage.
+- Added Open77 `map.read` and `map.control` permissions for native map tabs.
